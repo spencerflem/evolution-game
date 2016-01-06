@@ -4,7 +4,10 @@ header <- dashboardHeader(title = "Evolution!")
 
 sidebar <- dashboardSidebar(
   #CREATURE SUMMARY
-  sidebarMenuOutput("mainMenu"),
+  sidebarMenu(
+    id = "selectedEvo",
+    sidebarMenuOutput("evos")
+  ),
   actionButton("confirmed","Confirm Evolution")
 )
 
@@ -17,7 +20,7 @@ body <- dashboardBody(
     ),
     tabPanel(
       "Other Creatures",
-      plotOutput("otherCreatures")
+      textOutput("otherCreatures")
     ),
     tabPanel(
       "Food Web",
