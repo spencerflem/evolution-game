@@ -87,6 +87,24 @@ computeSampleSpace <- function(creatures) {
 
 shinyServer(function(input, output) {
 
+  output$mainMenu <- renderMenu({
+    sidebarMenu(
+      id = "selectedEvo",
+      menuItem("arms",tabName = "Arms",
+               menuSubItem("good arms",tabName = "good arms"),
+               menuSubItem("bad arms",tabName = "bad arms")),
+      menuItem("legs",tabName = "Legs",
+               menuSubItem("good legs",tabName = "good legs"),
+               menuSubItem("bad legs",tabName = "bad legs")),
+      menuItem("body",tabName = "Body",
+               menuSubItem("good body",tabName = "good body"),
+               menuSubItem("bad body",tabName = "bad body")),
+      menuItem("brain",tabName = "Brain",
+               menuSubItem("good brain",tabName = "good brain"),
+               menuSubItem("bad brain",tabName = "bad brain"))
+    )
+  })
+  
   output$foodWeb <- renderPlot({
     V <- letters[1:10]
     M <- 1:4
