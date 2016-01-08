@@ -151,11 +151,11 @@ shinyServer(function(input, output, session) {
 
   output$yourCreature <- renderText(getEvolutions())
   
-  output$otherCreatures <- renderPrint(addedCreature)
+  output$otherCreatures <- renderPrint(addedCreature())
   
   getEvolutions <- eventReactive(input$confirmed, {addEvolution(input$selectedEvo)}, ignoreNULL = FALSE)
   
-  addedCreature <- eventReactive(input$createCreature, {addCreature(input$ID, input$class, input$race, input$name)})
+  addedCreature <- eventReactive(input$joined, {addCreature(input$ID, input$class, input$race, input$name)})
   
   output$evos <- renderMenu({
     sidebarMenu(
