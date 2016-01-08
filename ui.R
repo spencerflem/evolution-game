@@ -12,7 +12,14 @@ sidebar <- dashboardSidebar(
   
   #INPUT CLASS RACE NAME
   
-  actionButton("joined","JOIN")
+  selectInput("class","Class",choices = c("carnivore","herbivore","omnivore")),
+  selectInput("race","Race",choices = c("big","dinky","average")),
+  textInput("name","Name"),
+  numericInput("ID","unset", value = 0),
+  actionButton("joined","Create Creatrue")
+  
+  #renderUI to distinguish the two?
+  #if not, shinyJS :/
 )
 
 body <- dashboardBody(

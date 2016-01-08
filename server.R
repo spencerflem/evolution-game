@@ -24,10 +24,24 @@ creatures <- matrix(
   nrow = 3, ncol = 7, byrow = TRUE
 )
 
-addCreature <- function(class,race,name) {
-  
+addCreature <- function(session,class,race,name) {
+  return(name)
 }
-  
+
+sessions <- c()
+
+generateID <- function() {
+  return(floor(runif(1,0,100000)))
+}
+
+addSession <- function() {
+  newSession <- generateID()
+  while(newSession %in% sessions) {
+    newSession <- generateID()
+  }
+  sessions <<- c(sessions, newSession)
+  return(newSession)
+}
 
 #dataframe? dimnames?
 stepSim <- function(creatures) 
@@ -92,8 +106,8 @@ computeSampleSpace <- function(creatures) {
 
 
 shinyServer(function(input, output, session) {
-
-  #session$regesterDataObj("uniqueID")
+  
+  updateNumericInput(session, "ID", "realID", value = addSession())
   
   output$mainMenu <- renderMenu({
     sidebarMenu(
@@ -133,9 +147,11 @@ shinyServer(function(input, output, session) {
 
   output$yourCreature <- renderText(getEvolutions())
   
-  output$otherCreatures <- renderPrint({sessionInfo()})
+  output$otherCreatures <- renderPrint(addedCreature)
   
   getEvolutions <- eventReactive(input$confirmed, {addEvolution(input$selectedEvo)}, ignoreNULL = FALSE)
+  
+  addedCreature <- eventReactive(input$createCreature, {addCreature(input$ID, input$class, input$race, input$name)})
   
   output$evos <- renderMenu({
     sidebarMenu(
