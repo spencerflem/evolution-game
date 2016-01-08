@@ -23,6 +23,12 @@ creatures <- matrix(
     0.2, 2, 50, 5, 95, 0, 1), #grass
   nrow = 3, ncol = 7, byrow = TRUE
 )
+
+addCreature <- function(class,race,name) {
+  
+}
+  
+
 #dataframe? dimnames?
 stepSim <- function(creatures) 
 {
@@ -85,8 +91,10 @@ computeSampleSpace <- function(creatures) {
 
 
 
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
 
+  #session$regesterDataObj("uniqueID")
+  
   output$mainMenu <- renderMenu({
     sidebarMenu(
       id = "selectedEvo",
@@ -125,7 +133,7 @@ shinyServer(function(input, output) {
 
   output$yourCreature <- renderText(getEvolutions())
   
-  output$otherCreatures <- renderText(input$selectedEvo)
+  output$otherCreatures <- renderPrint({sessionInfo()})
   
   getEvolutions <- eventReactive(input$confirmed, {addEvolution(input$selectedEvo)}, ignoreNULL = FALSE)
   
