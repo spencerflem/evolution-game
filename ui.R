@@ -16,7 +16,8 @@ sidebar <- dashboardSidebar(
   selectInput("race","Race",choices = c("big","dinky","average")),
   textInput("name","Name"),
   numericInput("ID","unset", value = 0),
-  actionButton("joined","Create Creatrue")
+  actionButton("joined","Create Creatrue"),
+  numericInput("counter","counter", value = 0)
   
   #renderUI to distinguish the two?
   #if not, shinyJS :/

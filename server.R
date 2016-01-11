@@ -8,6 +8,7 @@
 library(shiny)
 library(Rgraphviz)
 library(ape)
+library(deSolve)
 
 evolutions <- c("LOLOL")
 
@@ -44,7 +45,8 @@ addSession <- function() {
 }
 
 #dataframe? dimnames?
-stepSim <- function(creatures) 
+#########SIM BEGINS HERE
+stepSim <- function() 
 {
   r <- creatures[,1] #r-value, + if plant, - if creatrue
   starting <- creatures[,2] #initial population size
@@ -102,8 +104,10 @@ computeSampleSpace <- function(creatures) {
     samplespace[index]
   }
 }
+############ SIM ENDS HERE
 
 
+#once all evolutions are collected - update all at once and run simulation, then update graphs - timer seems complicated
 
 shinyServer(function(input, output, session) {
   
