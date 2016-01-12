@@ -1,9 +1,11 @@
 library(shinydashboard)
+library(shinyjs)
 
 header <- dashboardHeader(title = "Evolution!")
 
 sidebar <- dashboardSidebar(
   #CREATURE SUMMARY
+  textOutput("creature"),
   sidebarMenu(
     id = "selectedEvo",
     sidebarMenuOutput("evos")
@@ -12,18 +14,18 @@ sidebar <- dashboardSidebar(
   
   #INPUT CLASS RACE NAME
   
+  h3("CREATE YOUR CREATURE!"),
   selectInput("class","Class",choices = c("carnivore","herbivore","omnivore")),
   selectInput("race","Race",choices = c("big","dinky","average")),
   textInput("name","Name"),
   numericInput("ID","unset", value = 0),
-  actionButton("joined","Create Creatrue"),
-  numericInput("counter","counter", value = 0)
-  
-  #renderUI to distinguish the two?
-  #if not, shinyJS :/
+  actionButton("joined","Create Creatrue")
 )
 
 body <- dashboardBody(
+  
+  useShinyjs(),
+  
   tabBox(
     width = 12,
     

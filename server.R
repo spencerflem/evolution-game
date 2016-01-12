@@ -9,13 +9,36 @@ library(shiny)
 library(Rgraphviz)
 library(ape)
 library(deSolve)
+library(shinyjs)
 
-evolutions <- c("LOLOL")
+evolutions <- c()
 
-addEvolution <- function(evolution)
+submittedIDs <- c()
+
+addEvolution <- function(ID, evolution)
 {
-  evolutions <<- c(evolutions, evolution)
-  return(evolutions)
+  if(ID %in% submittedIDs) {
+  }
+  else {
+    #APPLY EVO - TODO then:
+    numNotSubmitted <- getNumNotSubmitted()
+    if(numNotSubmitted == 0) {
+      stepSim()
+      submittedIDs <<- c()
+    }
+  }
+}
+
+getNumNotSubmitted <- function() {
+  count <- 0
+  for(ID in sessions) {
+    if(ID %in% submittedIDs) {
+    }
+    else {
+      count <- count + 1
+    }
+  }
+  return(count)
 }
 
 creatures <- matrix(
@@ -25,8 +48,9 @@ creatures <- matrix(
   nrow = 3, ncol = 7, byrow = TRUE
 )
 
-addCreature <- function(session,class,race,name) {
-  return(name)
+addCreature <- function(ID, class, race, name) {
+  newCreature <- 5 #TODO
+  creatures <- rbind(creatures, newCreature)
 }
 
 sessions <- c()
@@ -113,6 +137,13 @@ shinyServer(function(input, output, session) {
   
   updateNumericInput(session, "ID", "realID", value = addSession())
   
+  disable("confirmed")
+  hide("creature")
+  hide("selectedEvo")
+  hide("confirmed")
+  hide("ID")
+  #CAN ANIMAte wiTH SHINYJS
+  
   output$mainMenu <- renderMenu({
     sidebarMenu(
       id = "selectedEvo",
@@ -153,7 +184,7 @@ shinyServer(function(input, output, session) {
   
   output$otherCreatures <- renderPrint(addedCreature())
   
-  getEvolutions <- eventReactive(input$confirmed, {addEvolution(input$selectedEvo)}, ignoreNULL = FALSE)
+  getEvolutions <- eventReactive(input$confirmed, {addEvolution(input$ID, input$selectedEvo)}, ignoreNULL = FALSE)
   
   addedCreature <- eventReactive(input$joined, {addCreature(input$ID, input$class, input$race, input$name)})
   
