@@ -8,6 +8,32 @@ library(plyr)
 
 #TODO: MAJOR: CHANGE MODEL FOR NEW CREATURE DATATYPE
 
+computeEvoFrame <- function(evolutions) {
+  evoFrame <- data.frame()
+  rowNames <- c()
+  for(evo in evolutions) {
+    rowNames <- c(rowNames, evo$evo)
+    evo$cat <- NULL
+    evo$evo <- NULL
+    evoFrame <- rbind.fill(evoFrame, evo)
+  }
+  row.names(evoFrame) <- rowNames
+  print(evoFrame)
+  return(evoFrame)
+}
+
+evolutions <- list(
+  data.frame(cat = "arms", evo = "good arms", quality = 200, stringsAsFactors = FALSE),
+  data.frame(cat = "arms", evo = "bad arms", quality = 401, stringsAsFactors = FALSE),
+  data.frame(cat = "legs", evo = "average legs", humility = 320, stringsAsFactors = FALSE)
+)
+
+evolutionsFrame <- computeEvoFrame(evolutions)
+
+allowedEvos <- function(ID) {
+  #TODO
+}
+
 submittedIDs <- c()
 
 addEvolution <- function(ID, evolution)
@@ -15,14 +41,16 @@ addEvolution <- function(ID, evolution)
   if(ID %in% submittedIDs) {
   }
   else {
-    #TODO: ensure evo is allowed
-    #GO INTO MATRIX, APPEND LIST
-    numNotSubmitted <- getNumNotSubmitted()
-    if(numNotSubmitted == 0) {
-      stepSim()
-      submittedIDs <<- c()
+    if(evolution %in% allowedEvos(ID)) {
+      creatures$ID <<- c(creatures$ID, evolutionsFrame[ID])
+      numNotSubmitted <- getNumNotSubmitted()
+      if(numNotSubmitted == 0) {
+        stepSim()
+        submittedIDs <<- c()
+      }
     }
   }
+  print(creatures[2,2])
 }
 
 getNumNotSubmitted <- function() {
@@ -265,7 +293,7 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$joined, {addCreature(input$ID, input$class, input$race, input$name)})
   
-  #TODO: ONLY SHOW SELECTABLE EVOS
+  #TODO: ONLY SHOW SELECTABLE EVOS: USE allowedEvos(input$ID) somehow perhaps createMenu()
   output$evos <- renderMenu({
     sidebarMenu(
     menuItem("arms",tabName = "Arms",
