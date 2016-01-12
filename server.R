@@ -1,17 +1,12 @@
-
-# This is the server logic for a Shiny web application.
-# You can find out more about building applications with Shiny here:
-#
-# http://shiny.rstudio.com
-#
-
 library(shiny)
 library(Rgraphviz)
 library(ape)
 library(deSolve)
 library(shinyjs)
+library(prob)
+library(plyr)
 
-evolutions <- c()
+#TODO: MAJOR: CHANGE MODEL FOR NEW CREATURE DATATYPE
 
 submittedIDs <- c()
 
@@ -20,7 +15,8 @@ addEvolution <- function(ID, evolution)
   if(ID %in% submittedIDs) {
   }
   else {
-    #APPLY EVO - TODO then:
+    #TODO: ensure evo is allowed
+    #GO INTO MATRIX, APPEND LIST
     numNotSubmitted <- getNumNotSubmitted()
     if(numNotSubmitted == 0) {
       stepSim()
@@ -41,16 +37,24 @@ getNumNotSubmitted <- function() {
   return(count)
 }
 
+baseCreature <- data.frame(rval = -0.2, popsize = 1, quality = 800, catchper = 1, seenchance = 50, influence = .4, predator = FALSE, grass = FALSE)
+grass <- data.frame(name = "grass", rval = 0.2, popsize = 2, quality = 50, catchper = 5, seenchance = 95, influence = .8, predator = FALSE, grass = TRUE)
+
 creatures <- matrix(
-  c(-0.2, 1, 800, 1, 50, 1, 0, #predator
-    -0.2, 1.2, 550, 1, 30, 0, 0, #prey
-    0.2, 2, 50, 5, 95, 0, 1), #grass
-  nrow = 3, ncol = 7, byrow = TRUE
+  c(-1, list(c(grass))), ncol = 2
 )
 
 addCreature <- function(ID, class, race, name) {
-  newCreature <- 5 #TODO
-  creatures <- rbind(creatures, newCreature)
+  newCreature <- data.frame(name = name, baseCreature)
+  creatures <<- rbind(creatures, c(ID, list(c(newCreature))))
+  show("creature")
+  show("selectedEvo")
+  show("confirmed")
+  hide("class")
+  hide("race")
+  hide("name")
+  hide("joined")
+  hide("heading")
 }
 
 sessions <- c()
@@ -68,13 +72,123 @@ addSession <- function() {
   return(newSession)
 }
 
-#dataframe? dimnames?
+populationSizes <- creatures[,2] #TODO: NOT RESILIANT TO ADDING NEW CREATURES! ALSO WRONG NOW!
+
 #########SIM BEGINS HERE
-stepSim <- function() 
-{
-  r <- creatures[,1] #r-value, + if plant, - if creatrue
-  starting <- creatures[,2] #initial population size
-  a <- calculateInteractionMatrix(creatures) #interaction matrix
+calculateRvalue <- function(creatures) {
+  return(creatures[,1])
+}
+
+computeChanceToBeSeen <- function(creatures) {
+  numCreatures <- nrow(creatures)
+  chanceMatrix <- matrix(creatures[,5], nrow = numCreatures, ncol = numCreatures)
+  return(chanceMatrix)
+}
+
+computeSampleSpace <- function(chanceToBeSeenRow) {
+  numCreatures <- length(chanceToBeSeenRow)
+  binarySpace <- tosscoin(numCreatures)
+  probs <- c()
+  for(i in 1:nrow(binarySpace)) {
+    probability <- 1
+    for(j in 1:numCreatures) {
+      if(binarySpace[i,j] == "H") {
+        probability <- probability * (chanceToBeSeenRow[j]/100)
+      }
+      else {
+        probability <- probability * ((100 - chanceToBeSeenRow[j])/100)
+      }
+    }
+    probs <- c(probs, probability)
+  }
+  sampleSpace <- probspace(binarySpace, probs)
+  print(sampleSpace)
+  return(sampleSpace)
+}
+
+computeValues <- function(creatures) {
+  numCreatures <- nrow(creatures)
+  valueMatrix <- matrix(0, nrow = numCreatures, ncol = numCreatures)
+  for(i in 1:numCreatures) {
+    for(j in 1:numCreatures) {
+      value <- creatures[j,3]*creatures[j,4]
+      if(i == j) {
+        value <- 0
+      }
+      if(creatures[i,7] == 0) {
+        if(creatures[j,8] == 0) {
+          value <- 0
+        }
+      }
+      if(creatures[i,7] == 1) {
+        if(creatures[j,8] == 1) {
+          value <- 0
+        }
+      }
+      if(creatures[i,8] == 1) {
+        value <- -1
+      }
+      print(value)
+      valueMatrix[i,j] <- value
+    }
+  }
+  return(valueMatrix)
+}
+
+computeChanceToEat <- function(sampleSpace, values) {
+  numCreatures <- length(values)
+  eatenRow <- rep(0, numCreatures)
+  for(i in 1:nrow(sampleSpace)) {
+    highestVal <- 0
+    highestIndex <- -1
+    for(j in 1:numCreatures) {
+      if(sampleSpace[i,j] == "H") {
+        if(values[j] > highestVal) {
+          highestVal <- values[j]
+          highestIndex <- j
+        }
+      }
+    }
+    if(highestIndex > -1) {
+      probability <- sampleSpace[i,(numCreatures + 1)]
+      eatenRow[highestIndex] <- eatenRow[highestIndex] + probability
+    }
+  }
+  return(eatenRow)
+}
+
+computeInfluences <- function(creatures) {
+  return(creatures[,6])
+}
+
+computeInteractionMatrixFragment <- function(chanceToEat, influence) {
+  numCreatures <- length(chanceToEat)
+  scaledChanceToEat <- sapply(chanceToEat, function(x){influence*x})
+  return(scaledChanceToEat)
+}
+
+calculateInteractionMatrix <- function(creatures) {
+  numCreatures <- nrow(creatures)
+  chanceToBeSeen <- computeChanceToBeSeen(creatures)
+  values <- computeValues(creatures)
+  influences <- computeInfluences(creatures)
+  interactionMatrix <- matrix(0, nrow = numCreatures, ncol = numCreatures, byrow = TRUE)
+  for(i in 1:numCreatures) {
+    sampleSpace <- computeSampleSpace(chanceToBeSeen[,i])
+    chanceToEat <- computeChanceToEat(sampleSpace, values[,i])
+    interactionMatrixFragment <- computeInteractionMatrixFragment(chanceToEat,influences[i])
+    interactionMatrix[i,] <- interactionMatrix[i,] - interactionMatrixFragment
+    interactionMatrix[,i] <- interactionMatrix[,i] + interactionMatrixFragment
+  }
+  print(interactionMatrix)
+  return(interactionMatrix)
+}
+
+stepSim <- function(creatures) {
+  
+  starting <- creatures[,2]
+  r <- calculateRvalue(creatures) #r-value, + if plant, - if creatrue
+  a <- calculateInteractionMatrix(creatures)
   
   steps <- 7
   N0 <- starting
@@ -84,12 +198,11 @@ stepSim <- function()
     steps <- steps - 1
     parms <- list(r,a)
     t=seq(1,1000, by=1)
-    library(deSolve)
     lvout <- ode(N0, t, function (t, n, parms) 
     {
       r <- parms[[1]]
       a <- parms[[2]]
-      dns.dt <- n * (r + (a %*% n)[,1])
+      dns.dt <- n * (r + (a %*% n)[,1]) #LOOK INTO THIS LINE: MIGHT BE RIFE FOR CHANGE!
       return(list(c(dns.dt)))
     }, parms)
     parms2 <- list(r,a,lvout)
@@ -107,31 +220,10 @@ stepSim <- function()
     N0 <- N0 + changes
     final <- N0
   }
-  return(final)
-}
-
-calculateInteractionMatrix <- function(creatures) {
-  samplespace <- computeSampleSpace(creatures)
-  return(matrix(c(0,0.2,0,-0.2,0,0.2,0,-0.2,0), nrow=3, ncol=3, byrow=TRUE))
-}
-
-computeSampleSpace <- function(creatures) {
-  ncreatures <- nrow(creatures)
-  ssones <- rep(1,2^ncreatures)
-  ssdims <- rep(2,ncreatures)
-  samplespace <- array(ssones, dim = ssdims)
-  for(i in 1:ncreatures) {
-    index <- rep(c(1,2),ncreatures)
-    index[i] <- 1
-    index[i+1] <- 1
-    #[] or [[]]
-    samplespace[index]
-  }
+  creatures[,2] <<- final
+  populationSizes <<- rbind(populationSizes,final)
 }
 ############ SIM ENDS HERE
-
-
-#once all evolutions are collected - update all at once and run simulation, then update graphs - timer seems complicated
 
 shinyServer(function(input, output, session) {
   
@@ -142,25 +234,6 @@ shinyServer(function(input, output, session) {
   hide("selectedEvo")
   hide("confirmed")
   hide("ID")
-  #CAN ANIMAte wiTH SHINYJS
-  
-  output$mainMenu <- renderMenu({
-    sidebarMenu(
-      id = "selectedEvo",
-      menuItem("arms",tabName = "Arms",
-               menuSubItem("good arms",tabName = "good arms"),
-               menuSubItem("bad arms",tabName = "bad arms")),
-      menuItem("legs",tabName = "Legs",
-               menuSubItem("good legs",tabName = "good legs"),
-               menuSubItem("bad legs",tabName = "bad legs")),
-      menuItem("body",tabName = "Body",
-               menuSubItem("good body",tabName = "good body"),
-               menuSubItem("bad body",tabName = "bad body")),
-      menuItem("brain",tabName = "Brain",
-               menuSubItem("good brain",tabName = "good brain"),
-               menuSubItem("bad brain",tabName = "bad brain"))
-    )
-  })
   
   output$foodWeb <- renderPlot({
     V <- letters[1:10]
@@ -176,18 +249,23 @@ shinyServer(function(input, output, session) {
   })
   
   output$populations <- renderPlot({
-    toplot <- matrix(c(1:5,10:15),nrow = 2, ncol = 5)
+    toplot <- matrix(c(1:5,11:15),nrow = 2, ncol = 5)
     matplot(toplot, type = "l", log = "y")
   })
-
-  output$yourCreature <- renderText(getEvolutions())
   
-  output$otherCreatures <- renderPrint(addedCreature())
+  #TODO: MAKE GRAPHS REACTIVE!!!!!
   
-  getEvolutions <- eventReactive(input$confirmed, {addEvolution(input$ID, input$selectedEvo)}, ignoreNULL = FALSE)
+  output$yourCreature <- renderText("getEvolutions()")
   
-  addedCreature <- eventReactive(input$joined, {addCreature(input$ID, input$class, input$race, input$name)})
+  output$otherCreatures <- renderPrint("addedCreature()")
   
+  observeEvent(input$selectedEvo, {enable("confirmed")})
+  
+  observeEvent(input$confirmed, {addEvolution(input$ID, input$selectedEvo)}, ignoreNULL = FALSE)
+  
+  observeEvent(input$joined, {addCreature(input$ID, input$class, input$race, input$name)})
+  
+  #TODO: ONLY SHOW SELECTABLE EVOS
   output$evos <- renderMenu({
     sidebarMenu(
     menuItem("arms",tabName = "Arms",

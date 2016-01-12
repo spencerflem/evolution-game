@@ -10,22 +10,18 @@ library(deSolve)
 #each sub-list is a creature
 #of type (r-value, population, quality, catchesPerStep, chancetobeseen, influence, ispredator, isgrass)
 creatures <- matrix(
-  c(-0.2, 1, 800, 1, 50, .40, 1, 0, #predator
-    -0.1, 1.2, 550, 1, 50, .4, 0, 0, #prey
-    0.3, 2, 50, 3, 95, .4, 0, 1), #grass
+  c(-0.2, 1, 800, 1, 50, .4, 1, 0, #predator
+    -0.2, 1.2, 550, 1, 30, .4, 0, 0, #prey
+    0.2, 2, 50, 5, 95, .8, 0, 1), #grass
   nrow = 3, byrow = TRUE
 )
 #dataframe? dimnames?
 
-populationSizes <- creatures[,2]
-
-starting <- creatures[,2] #initial population size
+populationSizes <- creatures[,2] #NOT RESILIANT TO ADDING NEW CREATURES!
 
 calculateRvalue <- function(creatures) {
   return(creatures[,1])
 }
-
-r <- calculateRvalue(creatures) #r-value, + if plant, - if creatrue
 
 computeChanceToBeSeen <- function(creatures) {
   numCreatures <- nrow(creatures)
@@ -132,11 +128,12 @@ calculateInteractionMatrix <- function(creatures) {
   return(interactionMatrix)
 }
 
-a <- calculateInteractionMatrix(creatures)
-ta <- matrix(c(0,0.2,0,-0.2,0,0.12,0,-0.12,0), nrow=3, ncol=3, byrow=TRUE)
-tta <- matrix(c(0,0.2,0,-0.2,0,0.2,0,-0.2,0), nrow=3, ncol=3, byrow=TRUE)
-
 stepSim <- function(creatures) {
+  
+  starting <- creatures[,2]
+  r <- calculateRvalue(creatures) #r-value, + if plant, - if creatrue
+  a <- calculateInteractionMatrix(creatures)
+  
   steps <- 7
   N0 <- starting
   final <- starting

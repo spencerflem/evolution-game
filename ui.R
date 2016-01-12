@@ -4,7 +4,7 @@ library(shinyjs)
 header <- dashboardHeader(title = "Evolution!")
 
 sidebar <- dashboardSidebar(
-  #CREATURE SUMMARY
+  #MAIN GAME
   textOutput("creature"),
   sidebarMenu(
     id = "selectedEvo",
@@ -12,14 +12,15 @@ sidebar <- dashboardSidebar(
   ),
   actionButton("confirmed","Confirm Evolution"),
   
-  #INPUT CLASS RACE NAME
+  #STARTUP
+  h3(id = "heading", "CREATE YOUR CREATURE!"),
+  selectInput("class","Class",choices = c("carnivore","omnivore","herbivore")),
+  selectInput("race","Race",choices = c("big","average","small")),
+  textInput("name","Name", value = "test"),
+  actionButton("joined","Create Creatrue"),
   
-  h3("CREATE YOUR CREATURE!"),
-  selectInput("class","Class",choices = c("carnivore","herbivore","omnivore")),
-  selectInput("race","Race",choices = c("big","dinky","average")),
-  textInput("name","Name"),
-  numericInput("ID","unset", value = 0),
-  actionButton("joined","Create Creatrue")
+  #HIDDEN
+  numericInput("ID","unset", value = 0)
 )
 
 body <- dashboardBody(
@@ -28,7 +29,6 @@ body <- dashboardBody(
   
   tabBox(
     width = 12,
-    
     tabPanel(
       "Your Creature",
       textOutput("yourCreature")
