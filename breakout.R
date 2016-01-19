@@ -297,15 +297,3 @@ shinyServer(function(input, output, session) {
     )})
   
 })
-
-
-addSession()
-addSession()
-
-addCreature(999, "la", "lo", "le")
-addCreature(888, "la", "lo", "les")
-
-addEvolution(888, "good arms")
-
-addEvolution(999, "good arms")
-addEvolution(999, "good legs")
