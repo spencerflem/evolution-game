@@ -1,10 +1,17 @@
 library(plyr)
 library(prob)
 
-baseCreature <- data.frame(popsize = 100, quality = 800, timeToCatch = 5, seenchance = 50, predator = FALSE, grass = FALSE)
-grass <- data.frame(name = "grass", popsize = 2000, quality = 50, timeToCatch = 1, seenchance = 45, predator = FALSE, grass = TRUE)
+#TODO:
+#do calculations by hand
+#then check output of each function
 
-creatures <- list('-1' = list(grass, grass))
+baseCreature <- data.frame(popSize = 100, quality = 800, timeToCatch = 5, seenChance = 50, predator = FALSE, grass = FALSE)
+grass <- data.frame(name = "grass", popSize = 2000, quality = 50, timeToCatch = 1, seenChance = 95, predator = FALSE, grass = TRUE)
+
+predator <- data.frame(name = "predator", popSize = 100, timeToCatch = 30, seenChance = 20, predator = TRUE, grass = FALSE)
+prey <- data.frame(name = "prey", popSize = 350, timeToCatch = 5, seenChance = 60, predator = FALSE, grass = FALSE)
+
+creatures <- list('-1' = list(grass), '1' = list(predator), '2' = list(prey))
 
 sumCreatures <- function(creatures) {
   summedCreatures <- data.frame()
@@ -26,11 +33,9 @@ sumCreatures <- function(creatures) {
 #MOVE THIS TO ADDING EVOLUTIONS?!?
 #STORE AS ONE DATAFRAME, NOT LIST OF THEM?!?
 
-summedCreatures(creatures)
-
 stepSim  <- function(times, subTimes, creatures) {
   summedCreatures <- sumCreatures(creatures)
-  populations <- summedCreatures$popsize
+  populations <- summedCreatures$popSize
   print(populations)
   print("---")
   for(i in 1:times) {
@@ -59,7 +64,7 @@ subStep <- function(subTimes, summedCreatures) {
       return(oox)
     }
   })
-  populations <- summedCreatures$popsize
+  populations <- summedCreatures$popSize
   for(i in 1:subTimes) {
     numEatenMatrix <- eatenMatrix * catchesPerStep * populations #MAY BE MORE DELICATE THAN JUST THIS!!!!!
     print("cps:")
@@ -88,10 +93,10 @@ computeChanceToBeSeen <- function(summedCreatures) {
   #apply evos here
   numCreatures <- nrow(summedCreatures)
   print(summedCreatures)
-  print(summedCreatures$seenchance)
-  chanceMatrix <- matrix(summedCreatures$seenchance, nrow = numCreatures, ncol = numCreatures)
+  print(summedCreatures$seenChance)
+  chanceMatrix <- matrix(summedCreatures$seenChance, nrow = numCreatures, ncol = numCreatures)
   print("%")
-  print(chanceMatrix)
+  print(chanceMatrix) #SIDEWAYS?
   return(chanceMatrix)
 }
 
@@ -126,24 +131,23 @@ computeValues <- function(creatures) {
   valueMatrix <- matrix(0, nrow = numCreatures, ncol = numCreatures)
   for(i in 1:numCreatures) {
     for(j in 1:numCreatures) {
-      value <- creatures$quality / creatures$timeToCatch
+      value <- creatures[j,3]*creatures[j,4]
       if(i == j) {
         value <- 0
       }
-      if(creatures$predator == 0) {
-        if(creatures$grass == 0) {
+      if(creatures[i,]$predator == 0) {
+        if(creatures[j,]$grass == 0) {
           value <- 0
         }
       }
-      if(creatures$predator > 0) {
-        if(creatures$grass > 0) {
+      if(creatures[i,]$predator >= 1) {
+        if(creatures[j,]$grass >= 1) {
           value <- 0
         }
       }
-      if(creatures$grass == 1) {
+      if(creatures[i,]$grass >= 1) {
         value <- -1
       }
-      print(value)
       valueMatrix[i,j] <- value
     }
   }
