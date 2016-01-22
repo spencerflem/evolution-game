@@ -1,84 +1,102 @@
 library(plyr)
+library(prob)
 
 baseCreature <- data.frame(popsize = 100, quality = 800, timeToCatch = 5, seenchance = 50, predator = FALSE, grass = FALSE)
-grass <- data.frame(name = "grass", popsize = 2000, quality = 50, timeToCatch = 1, seenchance = 95, predator = FALSE, grass = TRUE)
+grass <- data.frame(name = "grass", popsize = 2000, quality = 50, timeToCatch = 1, seenchance = 45, predator = FALSE, grass = TRUE)
 
 creatures <- list('-1' = list(grass, grass))
 
-#HOW TO APPEND:
-creatures <- c(creatures, list('999' = list(grass, grass)))
-
-#HOW TO ADD EVOLUTION:
-creatures$'999' <- c(creatures$'999', list(grass))
-
-#HOW TO CONVERT TO SUMMED FORM:
-filledFrame <- data.frame()
-for(frame in creatures$'999') {
-  filledFrame <- rbind.fill(filledFrame, frame)
-}
-summedCreature <- colSums(filledFrame[,-1])
-
-summedCreatures <- function(creatures) {
-  summedCreatures <- list()
+sumCreatures <- function(creatures) {
+  summedCreatures <- data.frame()
   for (creature in creatures) {
     filledFrame <- data.frame()
+    #NAME AND ID!!!!!!!!!!!!!!!!!!!!!!!!
     for(frame in creature) {
       filledFrame <- rbind.fill(filledFrame, frame)
     }
-    summedCreature <- colSums(filledFrame[,-1])
-    summedCreatures <- list(summedCreatures, summedCreature)
+    name <- filledFrame[]
+    filledFrame <- filledFrame[,-1]
+    colSums <- colSums(filledFrame)
+    filledFrame["Totals",] <- colSums
+    summedCreatures <- rbind.fill(summedCreatures, tail(filledFrame, 1))
   }
-  print("OUT!")
   return(summedCreatures)
 }
+
+#MOVE THIS TO ADDING EVOLUTIONS?!?
+#STORE AS ONE DATAFRAME, NOT LIST OF THEM?!?
 
 summedCreatures(creatures)
 
 stepSim  <- function(times, subTimes, creatures) {
-  compressedCreatures <- ldply(creatures, data.frame) #LDPLY DOESNT WORK
-  populations <- compressedCreatures$popsize
+  summedCreatures <- sumCreatures(creatures)
+  populations <- summedCreatures$popsize
   print(populations)
   print("---")
   for(i in 1:times) {
-    eatenChances <- calculateEatenChance(compressedCreatures)
-    populations <- subStep(subTimes, eatenChances, populations)
+    populations <- subStep(subTimes, summedCreatures)
   }
   print(populations)
 }
 
-subStep <- function(times, eatenChances, creatures) {
-  numCreatures <- nrow(creatures)
-  compressedCreatures <- ldply(creatures, data.frame) #DOESNT WORK
+subStep <- function(subTimes, summedCreatures) {
+  numCreatures <- nrow(summedCreatures)
   print("hihi6")
-  eatenMatrix <- calculateEatenMatrix(creatures)
-  timeToCatch <- calculateTimeToCatch
+  eatenMatrix <- calculateEatenMatrix(summedCreatures)
+  timeToCatch <- computeTimeToCatch(summedCreatures)
+  print("em:")
+  print(eatenMatrix)
+  print("ttc:")
+  print(timeToCatch)
   timeShards <- eatenMatrix * timeToCatch
   totalCatchTimes <- rowSums(timeShards)
-  catchesPerStep <- sapply(totalCatchTimes, function(x){return(1/x)})
-  populations <- compressedCreatures$popsize
-  for(i in 1:times) {
+  catchesPerStep <- sapply(totalCatchTimes, function(x){
+    oox <- 1/x
+    if(is.infinite(oox)) {
+      return(0)
+    }
+    else {
+      return(oox)
+    }
+  })
+  populations <- summedCreatures$popsize
+  for(i in 1:subTimes) {
     numEatenMatrix <- eatenMatrix * catchesPerStep * populations #MAY BE MORE DELICATE THAN JUST THIS!!!!!
+    print("cps:")
+    print(catchesPerStep)
+    print("pops:")
+    print(populations)
+    print("numEatenMatrix")
     numEaten <- colSums(numEatenMatrix)
+    print("ne:")
+    print(numEaten)
     populations <- populations + numEaten
   }
-  # <<- update creatures
+  print("OUT!")
+  return(populations)
 }
 
 #NEEDS METHOD OF GROWTH!!! - BASED ON CALORIES NEEDED?
 
-computeTimeToCatch <- function(creatures) {
-  #apply evos here
-  compressedCreatures <- ldply(creatures, data.frame) #DOESNT WORK
-  return(compressedCreatures$timeToCatch)
+computeTimeToCatch <- function(summedCreatures) {
+  numCreatures <- nrow(summedCreatures)
+  timeToCatchMatrix <- matrix(summedCreatures$timeToCatch, nrow = numCreatures, ncol = numCreatures)
+  return(timeToCatchMatrix)
 }
 
-computeChanceToBeSeen <- function(creatures) {
+computeChanceToBeSeen <- function(summedCreatures) {
   #apply evos here
-  compressedCreatures <- ldply(creatures, data.frame) #DOESNT WORK
-  return(compressedCreatures$seenchance)
+  numCreatures <- nrow(summedCreatures)
+  print(summedCreatures)
+  print(summedCreatures$seenchance)
+  chanceMatrix <- matrix(summedCreatures$seenchance, nrow = numCreatures, ncol = numCreatures)
+  print("%")
+  print(chanceMatrix)
+  return(chanceMatrix)
 }
 
 computeSampleSpace <- function(chanceToBeSeenRow) {
+  print(chanceToBeSeenRow)
   numCreatures <- length(chanceToBeSeenRow)
   binarySpace <- tosscoin(numCreatures)
   probs <- c()
@@ -108,21 +126,21 @@ computeValues <- function(creatures) {
   valueMatrix <- matrix(0, nrow = numCreatures, ncol = numCreatures)
   for(i in 1:numCreatures) {
     for(j in 1:numCreatures) {
-      value <- creatures[j,3]*creatures[j,4]
+      value <- creatures$quality / creatures$timeToCatch
       if(i == j) {
         value <- 0
       }
-      if(creatures[i,7] == 0) {
-        if(creatures[j,8] == 0) {
+      if(creatures$predator == 0) {
+        if(creatures$grass == 0) {
           value <- 0
         }
       }
-      if(creatures[i,7] == 1) {
-        if(creatures[j,8] == 1) {
+      if(creatures$predator > 0) {
+        if(creatures$grass > 0) {
           value <- 0
         }
       }
-      if(creatures[i,8] == 1) {
+      if(creatures$grass == 1) {
         value <- -1
       }
       print(value)
@@ -154,11 +172,13 @@ computeChanceToEat <- function(sampleSpace, values) {
   return(eatenRow)
 }
 
-calculateEatenMatrix <- function(creatures) {
+calculateEatenMatrix <- function(summedCreatures) {
   print("aadadassdsads")
-  numCreatures <- nrow(creatures)
-  chanceToBeSeen <- computeChanceToBeSeen(creatures)
-  values <- computeValues(creatures)
+  numCreatures <- nrow(summedCreatures)
+  chanceToBeSeen <- computeChanceToBeSeen(summedCreatures)
+  print(chanceToBeSeen)
+  print("----")
+  values <- computeValues(summedCreatures)
   eatenMatrix <- matrix(0, nrow = numCreatures, ncol = numCreatures, byrow = TRUE)
   for(i in 1:numCreatures) {
     sampleSpace <- computeSampleSpace(chanceToBeSeen[,i])
