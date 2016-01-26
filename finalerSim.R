@@ -1,22 +1,25 @@
 library(plyr)
 library(prob)
 
-grass <- data.frame(name = "grass", popSize = 2000, calories = 40, catchesPerStep = 1, seenChance = 95, predator = FALSE, grass = TRUE, caloriesRequired = -1, lifeExpectancy = -1, babyCalories = -1, maxBabies = -1, babySurviveChance = -1, chanceToBeNearMultiplier = 20)
+grass <- data.frame(name = "grass", popSize = 20000, calories = 20, catchesPerStep = 2, seenChance = 95, predator = FALSE, grass = TRUE, caloriesRequired = -1, lifeExpectancy = -1, babyCalories = -1, maxBabies = -1, babySurviveChance = -1, chanceToBeNearMultiplier = 20)
 
-pred1 <- data.frame(name = "predator", popSize = 100, calories = 800, catchesPerStep = .40, seenChance = 20, predator = TRUE, grass = FALSE, caloriesRequired = 400, lifeExpectancy = 30, babyCalories = 90, maxBabies = 2, babySurviveChance = 70, chanceToBeNearMultiplier = 20)
-pred2 <- data.frame(name = "predator", popSize = 100, calories = 1000, catchesPerStep = .10, seenChance = 20, predator = TRUE, grass = FALSE, caloriesRequired = 300, lifeExpectancy = 25, babyCalories = 110, maxBabies = 1, babySurviveChance = 85, chanceToBeNearMultiplier = 20)
-pred3 <- data.frame(name = "predator", popSize = 50, calories = 1000, catchesPerStep = .40, seenChance = 10, predator = TRUE, grass = FALSE, caloriesRequired = 200, lifeExpectancy = 30, babyCalories = 85, maxBabies = 3, babySurviveChance = 75, chanceToBeNearMultiplier = 20)
+pred1 <- data.frame(name = "predator", popSize = 100, calories = 800, catchesPerStep = 0.4, seenChance = 20, predator = TRUE, grass = FALSE, caloriesRequired = 300, lifeExpectancy = 30, babyCalories = 90, maxBabies = 2, babySurviveChance = 70, chanceToBeNearMultiplier = 30)
+pred2 <- data.frame(name = "predator", popSize = 100, calories = 1000, catchesPerStep = 0.6, seenChance = 20, predator = TRUE, grass = FALSE, caloriesRequired = 200, lifeExpectancy = 25, babyCalories = 110, maxBabies = 1, babySurviveChance = 85, chanceToBeNearMultiplier = 30)
+pred3 <- data.frame(name = "predator", popSize = 500, calories = 1000, catchesPerStep = 0.4, seenChance = 10, predator = TRUE, grass = FALSE, caloriesRequired = 100, lifeExpectancy = 30, babyCalories = 85, maxBabies = 3, babySurviveChance = 75, chanceToBeNearMultiplier = 30)
 
-prey1 <- data.frame(name = "prey", popSize = 350, calories = 300, catchesPerStep = 1.5, seenChance = 60, predator = FALSE, grass = FALSE, caloriesRequired = 75, lifeExpectancy = 10, babyCalories = 25, maxBabies = 8, babySurviveChance = 40, chanceToBeNearMultiplier = 20)
-prey2 <- data.frame(name = "prey", popSize = 350, calories = 300, catchesPerStep = 1.5, seenChance = 30, predator = FALSE, grass = FALSE, caloriesRequired = 100, lifeExpectancy = 8, babyCalories = 20, maxBabies = 8, babySurviveChance = 30, chanceToBeNearMultiplier = 20)
-prey3 <- data.frame(name = "prey", popSize = 350, calories = 200, catchesPerStep = 1.9, seenChance = 60, predator = FALSE, grass = FALSE, caloriesRequired = 75, lifeExpectancy = 10, babyCalories = 15, maxBabies = 12, babySurviveChance = 40, chanceToBeNearMultiplier = 20)
-prey4 <- data.frame(name = "prey", popSize = 350, calories = 100, catchesPerStep = 1.1, seenChance = 30, predator = FALSE, grass = FALSE, caloriesRequired = 50, lifeExpectancy = 12, babyCalories = 17, maxBabies = 14, babySurviveChance = 35, chanceToBeNearMultiplier = 20)
-prey5 <- data.frame(name = "prey", popSize = 350, calories = 400, catchesPerStep = 2.1, seenChance = 70, predator = FALSE, grass = FALSE, caloriesRequired = 50, lifeExpectancy = 10, babyCalories = 25, maxBabies = 9, babySurviveChance = 45, chanceToBeNearMultiplier = 20)
+prey1 <- data.frame(name = "prey", popSize = 350, calories = 300, catchesPerStep = 0.7, seenChance = 60, predator = FALSE, grass = FALSE, caloriesRequired = 50, lifeExpectancy = 10, babyCalories = 200, maxBabies = 8, babySurviveChance = 40, chanceToBeNearMultiplier = 30)
+prey2 <- data.frame(name = "prey", popSize = 350, calories = 300, catchesPerStep = 1.8, seenChance = 30, predator = FALSE, grass = FALSE, caloriesRequired = 75, lifeExpectancy = 8, babyCalories = 150, maxBabies = 8, babySurviveChance = 30, chanceToBeNearMultiplier = 30)
+prey3 <- data.frame(name = "prey", popSize = 350, calories = 200, catchesPerStep = 0.8, seenChance = 60, predator = FALSE, grass = FALSE, caloriesRequired = 50, lifeExpectancy = 10, babyCalories = 100, maxBabies = 12, babySurviveChance = 40, chanceToBeNearMultiplier = 30)
+prey4 <- data.frame(name = "prey", popSize = 350, calories = 100, catchesPerStep = 1.0, seenChance = 30, predator = FALSE, grass = FALSE, caloriesRequired = 25, lifeExpectancy = 12, babyCalories = 120, maxBabies = 14, babySurviveChance = 35, chanceToBeNearMultiplier = 30)
+prey5 <- data.frame(name = "prey", popSize = 350, calories = 400, catchesPerStep = 1.5, seenChance = 70, predator = FALSE, grass = FALSE, caloriesRequired = 25, lifeExpectancy = 10, babyCalories = 20, maxBabies = 8, babySurviveChance = 45, chanceToBeNearMultiplier = 20)
 
-creatures <- list('-1' = list(grass), '2' = list(pred1), '66' = list(pred2), '3' = list(pred3), '99' = list(prey1), '4' = list(prey2), '5' = list(prey3), '6' = list(prey4), '2' = list(prey5))
+#creatures <- list('-1' = list(grass), '2' = list(pred1), '66' = list(pred2), '3' = list(pred3), '99' = list(prey1), '4' = list(prey2), '5' = list(prey3), '6' = list(prey4), '2' = list(prey5))
+creatures <- list('-1' = list(grass), '66' = list(prey5))
 
 #TODO: ADD STEPSIZE!!!
 #rem maxbabies?
+
+populationSizes <- c()
 
 sumCreatures <- function(creatures) {
   summedCreatures <- data.frame()
@@ -38,11 +41,15 @@ sumCreatures <- function(creatures) {
 stepSim  <- function(times, subTimes, stepSize, creatures) {
   summedCreatures <- sumCreatures(creatures)
   print(summedCreatures$popSize) #IMPORTANT!
+  populationSizes <<- summedCreatures$popSize
   for(i in 1:times) {
     summedCreatures$popSize <- subStep(subTimes, stepSize, summedCreatures)
+    print(i)
     print("---------------------------------------------------") #IMPORTANT!
     print(summedCreatures$popSize) #IMPORTANT!
     print("---------------------------------------------------") #IMPORTANT!
+    populationSizes <<- rbind(populationSizes,summedCreatures$popSize)
+    
   }
   #TODO
   #OUTPUT SOMEHOW TO CREATURES FRAME
@@ -54,31 +61,32 @@ subStep <- function(subTimes, stepSize, summedCreatures) {
   catchesPerStep <- computecatchesPerStep(summedCreatures)
   catchesPerStepMatrix <- matrix(catchesPerStep, nrow = numCreatures, ncol = numCreatures)
   
-  #print("CPSM")
-  #print(catchesPerStepMatrix)
+  print("CatchesPerStepMtrx")
+  print(catchesPerStepMatrix)
   
   populations <- summedCreatures$popSize
   
-  #print("PM:")
+  print("PopulationMtrx:")
   
   popMatrix <- matrix(populations, nrow = numCreatures, ncol = numCreatures)
   
-  #print(popMatrix)
+  print(popMatrix)
   
   for(i in 1:subTimes) {
     
-    #print("EM:")
-    #print(eatenMatrix)
-    #print("CPS")
-    #print(catchesPerStep)
-    #print("NEM:")
+    print("EatenMtrx:")
+    print(eatenMatrix)
+    print("CatchesPerStep")
+    print(catchesPerStep)
+    print("NumEatenMtrx:")
     
     numEatenMatrix <- eatenMatrix * catchesPerStepMatrix * popMatrix
     
-    #print(numEatenMatrix)
+    print(numEatenMatrix)
     
     growth <- computeGrowth(summedCreatures, numEatenMatrix)
     populations <- populations + growth * stepSize
+    
     populations <- sapply(populations, function(x){
       if(x < 0) {
         return(0)
@@ -99,17 +107,17 @@ computeGrowth <- function(summedCreatures, numEatenMatrix) {
   caloriesMatrix <- matrix(summedCreatures$calories, nrow = numCreatures, ncol = numCreatures, byrow = TRUE)
   caloriesEatenMatrix <- numEatenMatrix * caloriesMatrix
   
-  #print("CM:")
-  #print(caloriesMatrix)
-  #print("CEM:")
-  #print(caloriesEatenMatrix)
+  print("CaloriesMtrx:")
+  print(caloriesMatrix)
+  print("CaloriesEatenMtrx:")
+  print(caloriesEatenMatrix)
   
-  caloriesGained <- 2 * rowSums(caloriesEatenMatrix)
+  caloriesGained <- 2 * rowSums(caloriesEatenMatrix) #TODO: ARBY $ why are cals so low?
   
-  #print("CG:")
-  #print(caloriesGained)
-  #print("CR:")
-  #print(summedCreatures$caloriesRequired * summedCreatures$popSize)
+  print("CaloriesGained:")
+  print(caloriesGained)
+  print("CaloriesRequired:")
+  print(summedCreatures$caloriesRequired * summedCreatures$popSize)
   
   #MAKE MATRIX?
   ufl <- c()
@@ -117,21 +125,19 @@ computeGrowth <- function(summedCreatures, numEatenMatrix) {
   ll <- c()
   for(i in 1:numCreatures) {
     
-    #print("---------------------------------------------------------------")
-    
     creature <- summedCreatures[i,]
     growthVal <- 0
     
     underfedLosses <- 0
     babiesSpawned <- 0
     babiesSurvived <- 0
-    caloriesDifference <- caloriesGained[i] - creature$popSize * creature$caloriesRequired #TODO: ARBY $ why are cals so low?
+    caloriesDifference <- caloriesGained[i] - creature$popSize * creature$caloriesRequired
     
-    #print("CD:")
-    #print(caloriesDifference)
+    print("CD:")
+    print(caloriesDifference)
     
     if(caloriesDifference < 0) {
-        underfedLosses <- -1 * caloriesDifference / creature$caloriesRequired
+        underfedLosses <- (-1 * caloriesDifference) / creature$caloriesRequired
     }
     else {
       babiesSpawned <- caloriesDifference / creature$babyCalories
@@ -142,11 +148,7 @@ computeGrowth <- function(summedCreatures, numEatenMatrix) {
       babiesSurvived <- babiesSpawned * creature$babySurviveChance / 100
     }
     
-    #print("UL:")
-    #print(underfedLosses)
     ufl <- c(ufl, underfedLosses)
-    #print("BS:")
-    #print(babiesSurvived)
     bs <- c(bs, babiesSpawned)
     
     lifeLosses <- 0
@@ -159,30 +161,27 @@ computeGrowth <- function(summedCreatures, numEatenMatrix) {
       lifeLosses <- lifeExpectancyLosses
     }
     
-    #print("ll")
-    #print(lifeLosses)
     ll <- c(ll, lifeLosses)
     
-    if(summedCreatures[i,]$grass >= 1) {
-      growthVal <- creature$popSize * 0.35 - numEaten[i]
+    if(creature$grass >= 1) {
+      growthVal <- creature$popSize * 0.09 - numEaten[i]
     }
     else {
       growthVal <- babiesSurvived - lifeLosses - underfedLosses
     }
     growth <- c(growth, growthVal)
-    
-    #print("-----")
-    #print("GV:")
-    #print(growthVal)
   
   }
   
-  #print("-------")
-  print("UFL, BS, LL | GROWTH:")
+  
+  #USUALLY NOT COMMENTED OUT
+  
+  print("UnderfedLosses, BabiesSpawned, LifeLosses | GROWTH:")
   print(ufl)
   print(bs)
   print(ll)
   print(growth)
+  
   #print("-------")
   
   return(growth)
@@ -200,14 +199,14 @@ computeChanceToBeSeen <- function(summedCreatures) {
   chanceToBeSpottedMatrix <- computeChanceToBeSpotted(summedCreatures)
   chanceToBeNearMatrix <- computeChanceToBeNear(summedCreatures)
   
-  #print("CTBNM:")
-  #print(chanceToBeNearMatrix)
-  #print("CTBSM:")
-  #print(chanceToBeSpottedMatrix)
+  print("ChanceToBeNearMtrx:")
+  print(chanceToBeNearMatrix)
+  print("ChaceToBeSeenMatrix:")
+  print(chanceToBeSpottedMatrix)
   
   chanceMatrix <- chanceToBeNearMatrix * chanceToBeSpottedMatrix
   
-  print("SMR:")
+  print("SeenMatrixRow:")
   print(chanceMatrix[1,])
   
   return(chanceMatrix)
@@ -224,7 +223,7 @@ computeChanceToBeNear <- function(summedCreatures) {
   chanceToBeNearMatrix <- matrix(0, nrow = numCreatures, ncol = numCreatures)
   for(i in 1:numCreatures) {
     for(j in 1:numCreatures) {
-      prob <- pbinom(0, size = summedCreatures[j,]$popSize, prob = 0.0001 * summedCreatures[i,]$chanceToBeNearMultiplier, lower.tail = FALSE)
+      prob <- pbinom(0, size = summedCreatures[j,]$popSize, prob = 0.000001 * summedCreatures[i,]$chanceToBeNearMultiplier, lower.tail = FALSE)
       chanceToBeNearMatrix[i,j] <- prob
     }
   }
@@ -306,16 +305,26 @@ computeChanceToEat <- function(sampleSpace, values) {
 }
 
 calculateEatenMatrix <- function(summedCreatures) {
+  
+  #PROBLEM?
+  
   numCreatures <- nrow(summedCreatures)
   chanceToBeSeen <- computeChanceToBeSeen(summedCreatures)
   values <- computeValues(summedCreatures)
   eatenMatrix <- matrix(0, nrow = numCreatures, ncol = numCreatures, byrow = TRUE)
+  
+  
+  
   for(i in 1:numCreatures) {
     sampleSpace <- computeSampleSpace(chanceToBeSeen[i,])
     chanceToEat <- computeChanceToEat(sampleSpace, values[i,])
     eatenMatrix[i,] <- chanceToEat
   }
+  
   return(eatenMatrix)
 }
 
-stepSim(150,1,0.2,creatures)
+stepSim(20,1,2,creatures)
+"============================================================================================="
+populationSizes
+matplot(populationSizes, type = "l", log = "y")
