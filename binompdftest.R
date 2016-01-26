@@ -15,8 +15,8 @@ pbinom(0, size = 2000000, prob = 0.0000001 * 30, lower.tail = FALSE) * .95
 
 #S-CURVE
 values2 <- c()
-for(i in 0:2000) {
-values2 <- c(values2, (1/(1+exp(-(i-275)/400))))
+for(i in 0:400) {
+values2 <- c(values2, (1/(1+exp(-(i-310)/40))))
 }
 matplot(values2, type = "l")
 
