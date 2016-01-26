@@ -35,15 +35,11 @@ body <- dashboardBody(
     ),
     tabPanel(
       "Other Creatures",
-      htmlOutput("otherCreatures")
+      dataTableOutput("otherCreatures")
     ),
     tabPanel(
       "Food Web",
       plotOutput("foodWeb")
-    ),
-    tabPanel(
-      "Evolutionary Tree",
-      plotOutput("evoTree")
     ),
     tabPanel(
       "Populations",

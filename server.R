@@ -1,25 +1,24 @@
 library(shiny)
-library(Rgraphviz)
-library(ape)
-library(deSolve)
 library(shinyjs)
-library(prob)
 library(plyr)
 
 evolutions <- list(
-  "good arms" = data.frame(cat = "arms", quality = 200, stringsAsFactors = FALSE),
-  "bad arms" = data.frame(cat = "arms", quality = 401, stringsAsFactors = FALSE),
+  "good arms" = data.frame(caloriesRequired = 20, stringsAsFactors = FALSE), #removed category - CRASHES APP TODO!
+  "bad arms" = data.frame(caloriesRequired = -10, stringsAsFactors = FALSE),
   "average legs" = data.frame(cat = "legs", humility = 320, stringsAsFactors = FALSE)
 )
 
 allowedEvos <- function(ID) {
-  #TODO
+  #TODO!
 }
 
 submittedIDs <- c()
 
-addEvolution <- function(ID, evolution)
-{
+addEvolution <- function(ID, evolution) {
+  
+  print("EVO")
+  print(evolution)
+  
   if(ID %in% submittedIDs) {
     print("NOPE")
   }
@@ -30,8 +29,8 @@ addEvolution <- function(ID, evolution)
       submittedIDs <<- c(submittedIDs, ID)
       numNotSubmitted <- getNumNotSubmitted()
       if(numNotSubmitted == 0) {
-        stepSim()
         submittedIDs <<- c()
+        stepSim(1000, 1, .1, creatures)
       }
     }
   }
@@ -49,10 +48,21 @@ getNumNotSubmitted <- function() {
   return(count)
 }
 
-baseCreature <- data.frame(popsize = 100, quality = 800, timeToCatch = 5, seenchance = 50, predator = FALSE, grass = FALSE)
-grass <- data.frame(name = "grass", popsize = 2000, quality = 50, timeToCatch = 1, seenchance = 95, predator = FALSE, grass = TRUE)
+grass <- data.frame(name = "grass", popSize = 20000, calories = 25, catchesPerStep = 2, seenChance = 95, predator = FALSE, grass = TRUE, caloriesRequired = -1, lifeExpectancy = -1, babyCalories = -1, maxBabies = -1, babySurviveChance = -1, nearChanceCenter = 18000, nearChanceSlope = 2000)
 
-creatures <- list('-1' = list(grass, grass))
+pred1 <- data.frame(name = "predator", popSize = 100, calories = 800, catchesPerStep = 0.4, seenChance = 20, predator = TRUE, grass = FALSE, caloriesRequired = 200, lifeExpectancy = 30, babyCalories = 120, maxBabies = 2, babySurviveChance = 70, nearChanceCenter = 600, nearChanceSlope = 1000)
+pred2 <- data.frame(name = "predator", popSize = 100, calories = 1000, catchesPerStep = 0.6, seenChance = 20, predator = TRUE, grass = FALSE, caloriesRequired = 150, lifeExpectancy = 25, babyCalories = 110, maxBabies = 1, babySurviveChance = 85, nearChanceCenter = 600, nearChanceSlope = 1000)
+pred3 <- data.frame(name = "predator", popSize = 100, calories = 1000, catchesPerStep = 0.4, seenChance = 10, predator = TRUE, grass = FALSE, caloriesRequired = 200, lifeExpectancy = 30, babyCalories = 85, maxBabies = 3, babySurviveChance = 75, nearChanceCenter = 600, nearChanceSlope = 1000)
+
+prey1 <- data.frame(name = "prey", popSize = 350, calories = 300, catchesPerStep = 0.7, seenChance = 60, predator = FALSE, grass = FALSE, caloriesRequired = 30, lifeExpectancy = 10, babyCalories = 20, maxBabies = 8, babySurviveChance = 40, nearChanceCenter = 310, nearChanceSlope = 35)
+prey2 <- data.frame(name = "prey", popSize = 350, calories = 300, catchesPerStep = 1.8, seenChance = 30, predator = FALSE, grass = FALSE, caloriesRequired = 55, lifeExpectancy = 8, babyCalories = 15, maxBabies = 8, babySurviveChance = 30, nearChanceCenter = 310, nearChanceSlope = 35)
+prey3 <- data.frame(name = "prey", popSize = 350, calories = 200, catchesPerStep = 0.8, seenChance = 60, predator = FALSE, grass = FALSE, caloriesRequired = 40, lifeExpectancy = 10, babyCalories = 10, maxBabies = 12, babySurviveChance = 40, nearChanceCenter = 310, nearChanceSlope = 35)
+prey4 <- data.frame(name = "prey", popSize = 350, calories = 100, catchesPerStep = 1.0, seenChance = 30, predator = FALSE, grass = FALSE, caloriesRequired = 20, lifeExpectancy = 12, babyCalories = 12, maxBabies = 14, babySurviveChance = 35, nearChanceCenter = 310, nearChanceSlope = 35)
+prey5 <- data.frame(name = "prey", popSize = 350, calories = 400, catchesPerStep = 1.5, seenChance = 70, predator = FALSE, grass = FALSE, caloriesRequired = 20, lifeExpectancy = 10, babyCalories = 20, maxBabies = 8, babySurviveChance = 45, nearChanceCenter = 310, nearChanceSlope = 35)
+
+creatures <- list('-1' = list(grass))
+
+baseCreature <- data.frame(popSize = 350, calories = 400, catchesPerStep = 1.5, seenChance = 70, predator = FALSE, grass = FALSE, caloriesRequired = 20, lifeExpectancy = 10, babyCalories = 20, maxBabies = 8, babySurviveChance = 45, nearChanceCenter = 310, nearChanceSlope = 35)
 
 updateView <- function() {
   toggle("creature")
@@ -66,7 +76,8 @@ updateView <- function() {
 }
 
 addCreature <- function(ID, class, race, name) {
-  newCreature <- data.frame(name = name, baseCreature)
+  testText <- "set"
+  newCreature <- data.frame(name = name, baseCreature) #TODO: VERY IMPORTANT Flesh this line out.
   strID <- toString(ID)
   creatures[[strID]] <<- list(newCreature)
   updateView()
@@ -87,92 +98,77 @@ addSession <- function() {
   return(newSession)
 }
 
-populationSizes <- creatures[,2] #TODO: NOT RESILIANT TO ADDING NEW CREATURES! ALSO WRONG NOW!
-
 #########SIM BEGINS HERE TODO: CHANGE EVERYTHING (specifically using new creature datatype)
-grass <- data.frame(name = "grass", popSize = 20000, calories = 25, catchesPerStep = 2, seenChance = 95, predator = FALSE, grass = TRUE, caloriesRequired = -1, lifeExpectancy = -1, babyCalories = -1, maxBabies = -1, babySurviveChance = -1, nearChanceCenter = 18000, nearChanceSlope = 2000)
 
-pred1 <- data.frame(name = "predator", popSize = 100, calories = 800, catchesPerStep = 0.4, seenChance = 20, predator = TRUE, grass = FALSE, caloriesRequired = 200, lifeExpectancy = 30, babyCalories = 120, maxBabies = 2, babySurviveChance = 70, nearChanceCenter = 600, nearChanceSlope = 1000)
-pred2 <- data.frame(name = "predator", popSize = 100, calories = 1000, catchesPerStep = 0.6, seenChance = 20, predator = TRUE, grass = FALSE, caloriesRequired = 150, lifeExpectancy = 25, babyCalories = 110, maxBabies = 1, babySurviveChance = 85, nearChanceCenter = 600, nearChanceSlope = 1000)
-pred3 <- data.frame(name = "predator", popSize = 100, calories = 1000, catchesPerStep = 0.4, seenChance = 10, predator = TRUE, grass = FALSE, caloriesRequired = 200, lifeExpectancy = 30, babyCalories = 85, maxBabies = 3, babySurviveChance = 75, nearChanceCenter = 600, nearChanceSlope = 1000)
-
-prey1 <- data.frame(name = "prey", popSize = 350, calories = 300, catchesPerStep = 0.7, seenChance = 60, predator = FALSE, grass = FALSE, caloriesRequired = 30, lifeExpectancy = 10, babyCalories = 20, maxBabies = 8, babySurviveChance = 40, nearChanceCenter = 310, nearChanceSlope = 35)
-prey2 <- data.frame(name = "prey", popSize = 350, calories = 300, catchesPerStep = 1.8, seenChance = 30, predator = FALSE, grass = FALSE, caloriesRequired = 55, lifeExpectancy = 8, babyCalories = 15, maxBabies = 8, babySurviveChance = 30, nearChanceCenter = 310, nearChanceSlope = 35)
-prey3 <- data.frame(name = "prey", popSize = 350, calories = 200, catchesPerStep = 0.8, seenChance = 60, predator = FALSE, grass = FALSE, caloriesRequired = 40, lifeExpectancy = 10, babyCalories = 10, maxBabies = 12, babySurviveChance = 40, nearChanceCenter = 310, nearChanceSlope = 35)
-prey4 <- data.frame(name = "prey", popSize = 350, calories = 100, catchesPerStep = 1.0, seenChance = 30, predator = FALSE, grass = FALSE, caloriesRequired = 20, lifeExpectancy = 12, babyCalories = 12, maxBabies = 14, babySurviveChance = 35, nearChanceCenter = 310, nearChanceSlope = 35)
-prey5 <- data.frame(name = "prey", popSize = 350, calories = 400, catchesPerStep = 1.5, seenChance = 70, predator = FALSE, grass = FALSE, caloriesRequired = 20, lifeExpectancy = 10, babyCalories = 20, maxBabies = 8, babySurviveChance = 45, nearChanceCenter = 310, nearChanceSlope = 35)
-
-#creatures <- list('-1' = list(grass), '2' = list(pred1), '66' = list(pred2), '3' = list(pred3), '99' = list(prey1), '4' = list(prey2), '5' = list(prey3), '6' = list(prey4), '2' = list(prey5))
-creatures <- list('-1' = list(grass), '66' = list(prey1), '6666' = list(prey2), '7676' = list(prey3), '988ds' = list(prey4), '765675' = list(prey5), '425452ds' = list(pred1), '78sdasdf' = list(pred2), '54455445' = list(pred3))
-
-#TODO: ADD STEPSIZE!!!
-#rem maxbabies?
-
-populationSizes <- c()
+populationSizes <- sumCreatures(creatures)$popSize
 
 sumCreatures <- function(creatures) {
   summedCreatures <- data.frame()
   for (creature in creatures) {
+    print("creature:")
+    print(creature)
     filledFrame <- data.frame()
     #NAME AND ID?
     for(frame in creature) {
       filledFrame <- rbind.fill(filledFrame, frame)
     }
-    name <- filledFrame[]
+    print("filled frame:")
+    print(filledFrame)
+    #name <- filledFrame[] #first element, name
     filledFrame <- filledFrame[,-1]
     colSums <- colSums(filledFrame)
-    filledFrame["Totals",] <- colSums
+    filledFrame["Totals",] <- colSums(filledFrame, na.rm = TRUE)
+    print("inc totals:")
+    print(filledFrame)
     summedCreatures <- rbind.fill(summedCreatures, tail(filledFrame, 1))
   }
   return(summedCreatures)
 }
 
 stepSim  <- function(times, subTimes, stepSize, creatures) {
+  print("IN!")
   summedCreatures <- sumCreatures(creatures)
+  print(summedCreatures)
+  print("---------------------------------------------------") #IMPORTANT!
   print(summedCreatures$popSize) #IMPORTANT!
+  print("---------------------------------------------------") #IMPORTANT!
   populationSizes <<- summedCreatures$popSize
   for(i in 1:times) {
     summedCreatures$popSize <- subStep(subTimes, stepSize, summedCreatures)
-    print(i)
+    print(i) #IMPORTANT
     print("---------------------------------------------------") #IMPORTANT!
     print(summedCreatures$popSize) #IMPORTANT!
     print("---------------------------------------------------") #IMPORTANT!
     populationSizes <<- rbind(populationSizes,summedCreatures$popSize)
     
   }
-  #TODO
+  #TODO: VERY IMPORTANT
   #OUTPUT SOMEHOW TO CREATURES FRAME
+  #summedCreatures$popSize
 }
 
 subStep <- function(subTimes, stepSize, summedCreatures) {
   numCreatures <- nrow(summedCreatures)
-  #eatenMatrixSLOW <- calculateEatenMatrix(summedCreatures)
   eatenMatrix <- calculateEatenMatrixFast(summedCreatures)
-  
   catchesPerStep <- computecatchesPerStep(summedCreatures)
   catchesPerStepMatrix <- matrix(catchesPerStep, nrow = numCreatures, ncol = numCreatures)
+  populations <- summedCreatures$popSize
+  popMatrix <- matrix(populations, nrow = numCreatures, ncol = numCreatures)
   
   #print("CatchesPerStepMtrx")
   #print(catchesPerStepMatrix)
-  
-  populations <- summedCreatures$popSize
-  
   #print("PopulationMtrx:")
-  
-  popMatrix <- matrix(populations, nrow = numCreatures, ncol = numCreatures)
-  
   #print(popMatrix)
   
   for(i in 1:subTimes) {
+    
+    numEatenMatrix <- eatenMatrix * catchesPerStepMatrix * popMatrix
     
     #print("EatenMtrx:")
     #print(eatenMatrix)
     #print("CatchesPerStep")
     #print(catchesPerStep)
     #print("NumEatenMtrx:")
-    
-    numEatenMatrix <- eatenMatrix * catchesPerStepMatrix * popMatrix
-    
     #print(numEatenMatrix)
     
     growth <- computeGrowth(summedCreatures, numEatenMatrix)
@@ -197,20 +193,17 @@ computeGrowth <- function(summedCreatures, numEatenMatrix) {
   numEaten <- colSums(numEatenMatrix)
   caloriesMatrix <- matrix(summedCreatures$calories, nrow = numCreatures, ncol = numCreatures, byrow = TRUE)
   caloriesEatenMatrix <- numEatenMatrix * caloriesMatrix
+  caloriesGained <- 2 * rowSums(caloriesEatenMatrix) #TODO: ARBY $ why are cals so low?
   
   #print("CaloriesMtrx:")
   #print(caloriesMatrix)
   #print("CaloriesEatenMtrx:")
   #print(caloriesEatenMatrix)
-  
-  caloriesGained <- 2 * rowSums(caloriesEatenMatrix) #TODO: ARBY $ why are cals so low?
-  
   #print("CaloriesGained:")
   #print(caloriesGained)
   #print("CaloriesRequired:")
   #print(summedCreatures$caloriesRequired * summedCreatures$popSize)
   
-  #MAKE MATRIX?
   ufl <- c()
   bs <- c()
   ll <- c()
@@ -289,14 +282,12 @@ computeChanceToBeSeen <- function(summedCreatures) {
   numCreatures <- nrow(summedCreatures)
   chanceToBeSpottedMatrix <- computeChanceToBeSpotted(summedCreatures)
   chanceToBeNearMatrix <- computeChanceToBeNear(summedCreatures)
+  chanceMatrix <- chanceToBeNearMatrix * chanceToBeSpottedMatrix
   
   #print("ChanceToBeNearMtrx:")
   #print(chanceToBeNearMatrix)
   #print("ChaceToBeSeenMatrix:")
   #print(chanceToBeSpottedMatrix)
-  
-  chanceMatrix <- chanceToBeNearMatrix * chanceToBeSpottedMatrix
-  
   #print("SeenMatrixRow:")
   #print(chanceMatrix[1,])
   
@@ -304,6 +295,7 @@ computeChanceToBeSeen <- function(summedCreatures) {
 }
 
 computeChanceToBeSpotted <- function(summedCreatures) {
+  #apply evos here
   numCreatures <- nrow(summedCreatures)
   chanceToBeSpottedMatrix <- matrix(summedCreatures$seenChance, nrow = numCreatures, ncol = numCreatures, byrow = TRUE)
   return(chanceToBeSpottedMatrix)
@@ -379,6 +371,8 @@ computeValues <- function(summedCreatures) {
 }
 ############ SIM ENDS HERE
 
+testText <- "unset"
+
 shinyServer(function(input, output, session) {
   
   updateNumericInput(session, "ID", "realID", value = addSession())
@@ -397,25 +391,21 @@ shinyServer(function(input, output, session) {
     plot(g1)
   })
   
-  output$evoTree <- renderPlot({
-    tree <- rtree(n = 20)
-    plot(tree, edge.width = 2)
-  })
+  currentCreaturess <- reactive({creatures})
   
   output$populations <- renderPlot({
-    toplot <- matrix(c(1:5,11:15),nrow = 2, ncol = 5)
-    matplot(toplot, type = "l", log = "y")
+    matplot(populationSizes, type = "l", log = "y")
   })
   
-  #TODO: MAKE GRAPHS REACTIVE!!!!!
+  #TODO: MAKE GRAPHS REACTIVE!!!!!!!!!!!!!!!! <- SUPER DUPER IMPORTANT!
   
-  output$yourCreature <- renderText("getEvolutions()")
+  output$yourCreature <- renderText(testText)
   
-  output$otherCreatures <- renderPrint("addedCreature()")
+  output$otherCreatures <- renderDataTable(creatures)
   
   observeEvent(input$selectedEvo, {enable("confirmed")})
   
-  observeEvent(input$confirmed, {addEvolution(input$ID, input$selectedEvo)}, ignoreNULL = FALSE)
+  observeEvent(input$confirmed, {addEvolution(input$ID, input$selectedEvo)}, ignoreNULL = TRUE) #used to be false...
   
   observeEvent(input$joined, {addCreature(input$ID, input$class, input$race, input$name)})
   
@@ -437,14 +427,4 @@ shinyServer(function(input, output, session) {
     )})
   
 })
-
-
-
-
-
-
-stepSim(75,1,0.2,creatures)
-"============================================================================================="
-populationSizes
-matplot(populationSizes, type = "l", log = "y")
 
