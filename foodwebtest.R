@@ -34,7 +34,7 @@ t(eatenMatrix)
 
 plotweb(t(eatenMatrix), main = "Gulf of Riga food web", sub = "mgC/m3/d", val = TRUE) #BACKUP FOOD WEB
 
-am.graph<-new("graphAM", adjMat=eatenMatrix, edgemode="directed")
+foodWeb<-new("graphAM", adjMat=eatenMatrix, edgemode="directed")
 am.graph
 plot(am.graph)
 

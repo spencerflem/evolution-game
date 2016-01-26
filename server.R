@@ -2,22 +2,49 @@ library(shiny)
 library(shinyjs)
 library(plyr)
 
-evolutions <- list(
-  "good arms" = data.frame(caloriesRequired = 20, stringsAsFactors = FALSE), #removed category - CRASHES APP TODO!
-  "bad arms" = data.frame(caloriesRequired = -10, stringsAsFactors = FALSE),
-  "average legs" = data.frame(cat = "legs", humility = 320, stringsAsFactors = FALSE)
+#if you die, new creature comes back in corectly
+#creature joining doesnt creash game TODO: priority 9
+
+evolutions <- list( #ADD EVOS (priority 5)
+  "arms" = list(
+    "good arms" = data.frame(caloriesRequired = 20, stringsAsFactors = FALSE), #removed category - CRASHES APP TODO!
+    "bad arms" = data.frame(caloriesRequired = -10, stringsAsFactors = FALSE)
+  ),
+  "legs" = list(
+    "average legs" = data.frame(cat = "legs", humility = 320, stringsAsFactors = FALSE)
+  )
 )
 
 allowedEvos <- function(ID) {
-  #TODO!
+  strID <- toString(ID)
+  creature <- creatures[[strID]]
+  allowedEvos <- c()
+  categories <- c() #HOW?
+  for(categoty in categories) {
+    evos <- c() #HOW
+    for(evo in evos) {
+      itemId <- c() #HOW
+      if(creature[[category]]$ID == itemID) {
+      }
+      else {
+        allowedEvos <- c(allowedEvos, evo)
+      }
+    }
+  }
+  print(allowedEvos)
+  return(allowedEvos)
 }
 
 submittedIDs <- c()
+
+#HOW TO GET CATEGORY FROM EVOLUTION
 
 addEvolution <- function(ID, evolution) {
   
   print("EVO")
   print(evolution)
+  
+  #TODO (priority 2) only allow 1 evo of each type
   
   if(ID %in% submittedIDs) {
     print("NOPE")
@@ -77,7 +104,7 @@ updateView <- function() {
 
 addCreature <- function(ID, class, race, name) {
   testText <- "set"
-  newCreature <- data.frame(name = name, baseCreature) #TODO: VERY IMPORTANT Flesh this line out.
+  newCreature <- data.frame(name = name, baseCreature) #TODO: VERY IMPORTANT Flesh this line out. (priority 6)
   strID <- toString(ID)
   creatures[[strID]] <<- list(newCreature)
   updateView()
@@ -98,9 +125,13 @@ addSession <- function() {
   return(newSession)
 }
 
-#########SIM BEGINS HERE TODO: CHANGE EVERYTHING (specifically using new creature datatype)
+#########SIM BEGINS HERE
 
+#First Time Setup
+summedCreatures <- sumCreatures(creatures)
+numCreatures <- nrow(summedCreatures)
 populationSizes <- sumCreatures(creatures)$popSize
+eatenMatrix <- matrix(0, nrow = numCreatures, ncol = numCreatures)
 
 sumCreatures <- function(creatures) {
   summedCreatures <- data.frame()
@@ -115,7 +146,14 @@ sumCreatures <- function(creatures) {
     print("filled frame:")
     print(filledFrame)
     #name <- filledFrame[] #first element, name
+    
+    
     filledFrame <- filledFrame[,-1]
+    
+    #filledFrame$name <- NA ???
+    #filledFrame$category <- NA ???
+    #why bother?
+    
     colSums <- colSums(filledFrame)
     filledFrame["Totals",] <- colSums(filledFrame, na.rm = TRUE)
     print("inc totals:")
@@ -126,13 +164,15 @@ sumCreatures <- function(creatures) {
 }
 
 stepSim  <- function(times, subTimes, stepSize, creatures) {
-  print("IN!")
   summedCreatures <- sumCreatures(creatures)
+  
   print(summedCreatures)
   print("---------------------------------------------------") #IMPORTANT!
   print(summedCreatures$popSize) #IMPORTANT!
   print("---------------------------------------------------") #IMPORTANT!
-  populationSizes <<- summedCreatures$popSize
+  
+  #populationSizes <<- summedCreatures$popSize
+  
   for(i in 1:times) {
     summedCreatures$popSize <- subStep(subTimes, stepSize, summedCreatures)
     print(i) #IMPORTANT
@@ -142,14 +182,16 @@ stepSim  <- function(times, subTimes, stepSize, creatures) {
     populationSizes <<- rbind(populationSizes,summedCreatures$popSize)
     
   }
-  #TODO: VERY IMPORTANT
-  #OUTPUT SOMEHOW TO CREATURES FRAME
-  #summedCreatures$popSize
+  
+  for(i in 1:numCreatures) {
+    creatures[[i]][[1]]$popSize <<- summedCreatures[i,]$popSize
+  }
+  
 }
 
 subStep <- function(subTimes, stepSize, summedCreatures) {
   numCreatures <- nrow(summedCreatures)
-  eatenMatrix <- calculateEatenMatrixFast(summedCreatures)
+  eatenMatrix <<- calculateEatenMatrixFast(summedCreatures)
   catchesPerStep <- computecatchesPerStep(summedCreatures)
   catchesPerStepMatrix <- matrix(catchesPerStep, nrow = numCreatures, ncol = numCreatures)
   populations <- summedCreatures$popSize
@@ -193,7 +235,7 @@ computeGrowth <- function(summedCreatures, numEatenMatrix) {
   numEaten <- colSums(numEatenMatrix)
   caloriesMatrix <- matrix(summedCreatures$calories, nrow = numCreatures, ncol = numCreatures, byrow = TRUE)
   caloriesEatenMatrix <- numEatenMatrix * caloriesMatrix
-  caloriesGained <- 2 * rowSums(caloriesEatenMatrix) #TODO: ARBY $ why are cals so low?
+  caloriesGained <- 2 * rowSums(caloriesEatenMatrix)
   
   #print("CaloriesMtrx:")
   #print(caloriesMatrix)
@@ -384,11 +426,8 @@ shinyServer(function(input, output, session) {
   hide("ID")
   
   output$foodWeb <- renderPlot({
-    V <- letters[1:10]
-    M <- 1:4
-    set.seed(input$bins)
-    g1 <- randomGraph(V, M, 0.2)
-    plot(g1)
+    foodWeb<-new("graphAM", adjMat=eatenMatrix, edgemode="directed")
+    plot(foodWeb)
   })
   
   currentCreaturess <- reactive({creatures})
@@ -397,11 +436,11 @@ shinyServer(function(input, output, session) {
     matplot(populationSizes, type = "l", log = "y")
   })
   
-  #TODO: MAKE GRAPHS REACTIVE!!!!!!!!!!!!!!!! <- SUPER DUPER IMPORTANT!
+  #TODO: MAKE GRAPHS REACTIVE!!!!!!!!!!!!!!!! <- SUPER DUPER IMPORTANT! TODO (priority 4)
   
-  output$yourCreature <- renderText(testText)
+  output$yourCreature <- renderText(testText) #TODO: priority 7 (only in sidebar? advanced stats)
   
-  output$otherCreatures <- renderDataTable(creatures)
+  output$otherCreatures <- renderDataTable(creatures) #TODO priority 8 (view basic stats of all creaures)
   
   observeEvent(input$selectedEvo, {enable("confirmed")})
   
@@ -409,21 +448,44 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$joined, {addCreature(input$ID, input$class, input$race, input$name)})
   
-  #TODO: ONLY SHOW SELECTABLE EVOS: USE allowedEvos(input$ID) somehow perhaps createMenu()
+  #TODO: ONLY SHOW SELECTABLE EVOS: USE allowedEvos(input$ID) somehow perhaps createMenu() TODO!: priority 3
+  #nut cracking means TREES!!!
+  #HERD MENTALITY? <- downside?
+  #MORE ENDURING LEGS?
+  #SHOW OFF POISONNESSNESS ALA BRIGHT SNAKES
+  #MIND/BRAIN EVOS?
+  #BURROWING?
+  #MOUTH
+  #BABYMAKING !
+  #Scavenger (eats those died to starve/attrition)?
   output$evos <- renderMenu({
     sidebarMenu(
-      menuItem("arms",tabName = "Arms",
-               menuSubItem("good arms",tabName = "good arms"),
-               menuSubItem("bad arms",tabName = "bad arms")),
-      menuItem("legs",tabName = "Legs",
-               menuSubItem("good legs",tabName = "good legs"),
-               menuSubItem("bad legs",tabName = "bad legs")),
-      menuItem("body",tabName = "Body",
-               menuSubItem("good body",tabName = "good body"),
-               menuSubItem("bad body",tabName = "bad body")),
-      menuItem("brain",tabName = "Brain",
-               menuSubItem("good brain",tabName = "good brain"),
-               menuSubItem("bad brain",tabName = "bad brain"))
+      menuItem("body",tabName = "body",
+               menuSubItem("bigger body (+1 size)",tabName = "+2size"),
+               menuSubItem("smaller body (-1 size)",tabName = "-2size")), 
+      menuItem("legs",tabName = "legs",
+               menuSubItem("speedier legs (+1 speed)",tabName = "+2speed"),
+               menuSubItem("efficent legs (-1 speed)",tabName = "-2speed")),
+      menuItem("skin",tabName = "skin",
+               menuSubItem("more defensive hide (+1 def -1 camo)",tabName = "+1def,-1camo"),
+               menuSubItem("camouflaged hide (+1 camo -1 def)", tabName = "+1camo,-1def")),
+      menuItem("eyes",tabName = "eyes",
+               menuSubItem("longer ranged eyes (+2 sight)",tabName = "+2sight"),
+               menuSubItem("camo spotting eyes (+2 spot)",tabName = "+2spot"),
+               menuSubItem("efficent eyes (-1 sight, -1 spot)",tabName="-1sight,-1spot")),
+      menuItem("stomach", tabName = "stomach",
+               menuSubItem("plant digesting stomach", tabName = "????"),
+               menuSubItem("meat digesting stomach", tabName = "???"),
+               menuSubItem("poison resisting stomach", tabName = "??")),
+      menuItem("glands", tabName = "glands",
+               menuSubItem("deadlier glands (+1 poison)", tabName = "+1poison"),
+               menuSubItem("efficent glands (-1 poison)", tabName = "-1poison")),
+      menuItem("packAttack", tabName = "herd mentality?",
+               menuSubItem("moreHerded EATS BIGGER THINGS, LESS OF THEM", tabName = "???"),
+               menuSubItem("lessHerded", tabName = "??")),
+      menuItem("wings", tabName = "wings",
+               menuSubItem("moreWinged", tabName = "???"),
+               menuSubItem("lessWinged", tabName = "??"))
     )})
   
 })

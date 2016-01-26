@@ -1,7 +1,7 @@
 library(shinydashboard)
 library(shinyjs)
 
-header <- dashboardHeader(title = "Evolution!")
+header <- dashboardHeader(title = "Darwin or Lose")
 
 sidebar <- dashboardSidebar(
   #MAIN GAME
@@ -44,10 +44,6 @@ body <- dashboardBody(
     tabPanel(
       "Populations",
       plotOutput("populations")
-    ),
-    tabPanel(
-      "Statistics",
-      plotOutput("statistics")
     )
   )
 )
