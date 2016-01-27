@@ -55,6 +55,7 @@ prey5 <- data.frame(name = "prey", popSize = 350, calories = 400, catchesPerStep
 
 creatures <- list('-1' = list(grass, prey1, grass), '-8' = list(prey2, pred1, grass))
 
+#creatures as a VECTOR c(ID=data.frame etc..)
 baseCreature <- data.frame(name = "prey", popSize = 350, calories = 400, catchesPerStep = 1.5, seenChance = 70, predator = FALSE, grass = FALSE, caloriesRequired = 20, lifeExpectancy = 10, babyCalories = 20, maxBabies = 8, babySurviveChance = 45, nearChanceCenter = 310, nearChanceSlope = 35)
 
 

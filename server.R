@@ -5,36 +5,6 @@ library(plyr)
 #if you die, new creature comes back in corectly
 #creature joining doesnt creash game TODO: priority 9
 
-evolutions <- list( #ADD EVOS (priority 5)
-  "arms" = list(
-    "good arms" = data.frame(caloriesRequired = 20, stringsAsFactors = FALSE), #removed category - CRASHES APP TODO!
-    "bad arms" = data.frame(caloriesRequired = -10, stringsAsFactors = FALSE)
-  ),
-  "legs" = list(
-    "average legs" = data.frame(cat = "legs", humility = 320, stringsAsFactors = FALSE)
-  )
-)
-
-allowedEvos <- function(ID) {
-  strID <- toString(ID)
-  creature <- creatures[[strID]]
-  allowedEvos <- c()
-  categories <- c() #HOW?
-  for(categoty in categories) {
-    evos <- c() #HOW
-    for(evo in evos) {
-      itemId <- c() #HOW
-      if(creature[[category]]$ID == itemID) {
-      }
-      else {
-        allowedEvos <- c(allowedEvos, evo)
-      }
-    }
-  }
-  print(allowedEvos)
-  return(allowedEvos)
-}
-
 submittedIDs <- c()
 
 #HOW TO GET CATEGORY FROM EVOLUTION
@@ -44,23 +14,28 @@ addEvolution <- function(ID, evolution) {
   print("EVO")
   print(evolution)
   
-  #TODO (priority 2) only allow 1 evo of each type
-  
   if(ID %in% submittedIDs) {
     print("NOPE")
   }
   else {
-    if(TRUE) { #evolution %in% allowedEvos(ID)
-      strID <- toString(ID)
-      creatures[[strID]] <<- c(creatures[[strID]], list(evolutions[[evolution]]))
-      submittedIDs <<- c(submittedIDs, ID)
-      numNotSubmitted <- getNumNotSubmitted()
-      if(numNotSubmitted == 0) {
-        submittedIDs <<- c()
-        stepSim(1000, 1, .1, creatures)
-      }
+    strID <- toString(ID)
+    items <- strsplit(evolution, ",")
+    amounts <- strsplit(unlist(items), "#")
+    dfAmounts <- as.data.frame(amounts, stringsAsFactors = FALSE)
+    for(change in dfAmounts) {
+      stat <- creatures[[strID]][[change[2]]]
+      value <- as.numeric(change[1])
+      stat <- stat + value
+      creatures[[strID]][[change[2]]] <<- stat
+    }
+    submittedIDs <<- c(submittedIDs, ID)
+    numNotSubmitted <- getNumNotSubmitted()
+    if(numNotSubmitted == 0) {
+      submittedIDs <<- c()
+      popSizes <- stepSim(1000, 1, .1, creatures)
     }
   }
+  return(popSizes)
 }
 
 getNumNotSubmitted <- function() {
@@ -87,9 +62,13 @@ prey3 <- data.frame(name = "prey", popSize = 350, calories = 200, catchesPerStep
 prey4 <- data.frame(name = "prey", popSize = 350, calories = 100, catchesPerStep = 1.0, seenChance = 30, predator = FALSE, grass = FALSE, caloriesRequired = 20, lifeExpectancy = 12, babyCalories = 12, maxBabies = 14, babySurviveChance = 35, nearChanceCenter = 310, nearChanceSlope = 35)
 prey5 <- data.frame(name = "prey", popSize = 350, calories = 400, catchesPerStep = 1.5, seenChance = 70, predator = FALSE, grass = FALSE, caloriesRequired = 20, lifeExpectancy = 10, babyCalories = 20, maxBabies = 8, babySurviveChance = 45, nearChanceCenter = 310, nearChanceSlope = 35)
 
-creatures <- list('-1' = list(grass))
+baseCreature <- data.frame(population = 300, size = 5, speed = 5, def = 5, camo = 5, sight = 5, spot = 5, plant = 5, meat = 5, resist = 5, poison = 5, flight = 5, pack = 5, grass = FALSE)
 
-baseCreature <- data.frame(popSize = 350, calories = 400, catchesPerStep = 1.5, seenChance = 70, predator = FALSE, grass = FALSE, caloriesRequired = 20, lifeExpectancy = 10, babyCalories = 20, maxBabies = 8, babySurviveChance = 45, nearChanceCenter = 310, nearChanceSlope = 35)
+creatures <- list('-1' = list(baseCreature))
+#soon to be data.frame TODO: PRIORITY 1
+
+#old style
+#baseCreature <- data.frame(popSize = 350, calories = 400, catchesPerStep = 1.5, seenChance = 70, predator = FALSE, grass = FALSE, caloriesRequired = 20, lifeExpectancy = 10, babyCalories = 20, maxBabies = 8, babySurviveChance = 45, nearChanceCenter = 310, nearChanceSlope = 35)
 
 updateView <- function() {
   toggle("creature")
@@ -103,10 +82,9 @@ updateView <- function() {
 }
 
 addCreature <- function(ID, class, race, name) {
-  testText <- "set"
   newCreature <- data.frame(name = name, baseCreature) #TODO: VERY IMPORTANT Flesh this line out. (priority 6)
   strID <- toString(ID)
-  creatures[[strID]] <<- list(newCreature)
+  creatures[[strID]] <<- newCreature
   updateView()
 }
 
@@ -186,7 +164,7 @@ stepSim  <- function(times, subTimes, stepSize, creatures) {
   for(i in 1:numCreatures) {
     creatures[[i]][[1]]$popSize <<- summedCreatures[i,]$popSize
   }
-  
+  return(populationSizes)
 }
 
 subStep <- function(subTimes, stepSize, summedCreatures) {
@@ -413,8 +391,6 @@ computeValues <- function(summedCreatures) {
 }
 ############ SIM ENDS HERE
 
-testText <- "unset"
-
 shinyServer(function(input, output, session) {
   
   updateNumericInput(session, "ID", "realID", value = addSession())
@@ -430,23 +406,27 @@ shinyServer(function(input, output, session) {
     plot(foodWeb)
   })
   
-  currentCreaturess <- reactive({creatures})
-  
   output$populations <- renderPlot({
-    matplot(populationSizes, type = "l", log = "y")
+    matplot(creaturesReact$popSizes, type = "l", log = "y")
   })
   
   #TODO: MAKE GRAPHS REACTIVE!!!!!!!!!!!!!!!! <- SUPER DUPER IMPORTANT! TODO (priority 4)
   
-  output$yourCreature <- renderText(testText) #TODO: priority 7 (only in sidebar? advanced stats)
+  creaturesReact <- reactiveValues()
+  creaturesReact$popSizes <- c(0,6,7)
+  
+  output$yourCreature <- renderText(testText$test) #TODO: priority 7 (only in sidebar? advanced stats)
   
   output$otherCreatures <- renderDataTable(creatures) #TODO priority 8 (view basic stats of all creaures)
   
   observeEvent(input$selectedEvo, {enable("confirmed")})
   
-  observeEvent(input$confirmed, {addEvolution(input$ID, input$selectedEvo)}, ignoreNULL = TRUE) #used to be false...
+  observeEvent(input$confirmed, {
+    creaturesReact$popSizes <- addEvolution(input$ID, input$selectedEvo)
+    }, ignoreNULL = TRUE) #used to be false...
   
-  observeEvent(input$joined, {addCreature(input$ID, input$class, input$race, input$name)})
+  observeEvent(input$joined, {
+    addCreature(input$ID, input$class, input$race, input$name)})
   
   #TODO: ONLY SHOW SELECTABLE EVOS: USE allowedEvos(input$ID) somehow perhaps createMenu() TODO!: priority 3
   #nut cracking means TREES!!!
@@ -461,31 +441,31 @@ shinyServer(function(input, output, session) {
   output$evos <- renderMenu({
     sidebarMenu(
       menuItem("body",tabName = "body",
-               menuSubItem("bigger body (+1 size)",tabName = "+2size"),
-               menuSubItem("smaller body (-1 size)",tabName = "-2size")), 
+               menuSubItem("larger (+1 size)",tabName = "+1#size"),
+               menuSubItem("smaller (-1 size)",tabName = "-1#size")),
       menuItem("legs",tabName = "legs",
-               menuSubItem("speedier legs (+1 speed)",tabName = "+2speed"),
-               menuSubItem("efficent legs (-1 speed)",tabName = "-2speed")),
-      menuItem("skin",tabName = "skin",
-               menuSubItem("more defensive hide (+1 def -1 camo)",tabName = "+1def,-1camo"),
-               menuSubItem("camouflaged hide (+1 camo -1 def)", tabName = "+1camo,-1def")),
+               menuSubItem("speedier (+1 speed)",tabName = "+1#speed"),
+               menuSubItem("more efficent (-1 speed)",tabName = "-1#speed")),
+      menuItem("hide",tabName = "hide",
+               menuSubItem("defensive (+1 def, -1 camo)",tabName = "+1#def,-1#camo"),
+               menuSubItem("camouflaged (+1 camo -1 def)", tabName = "+1#camo,-1#def")),
       menuItem("eyes",tabName = "eyes",
-               menuSubItem("longer ranged eyes (+2 sight)",tabName = "+2sight"),
-               menuSubItem("camo spotting eyes (+2 spot)",tabName = "+2spot"),
-               menuSubItem("efficent eyes (-1 sight, -1 spot)",tabName="-1sight,-1spot")),
+               menuSubItem("longer ranged (+2 sight)",tabName = "+2#sight"),
+               menuSubItem("camo spotting (+2 spot)",tabName = "+2#spot"),
+               menuSubItem("more efficent (-1 sight, -1 spot)",tabName="-1#sight,-1#spot")),
       menuItem("stomach", tabName = "stomach",
-               menuSubItem("plant digesting stomach", tabName = "????"),
-               menuSubItem("meat digesting stomach", tabName = "???"),
-               menuSubItem("poison resisting stomach", tabName = "??")),
+               menuSubItem("digests plant (+1 plant, -1 else)", tabName = "+1#plant,-1#meat,-1#resist"),
+               menuSubItem("digests meat (+1 meat, -1 else)", tabName = "+1#meat,-1#plant,-1#resist"),
+               menuSubItem("resists poison (+1 resist, -1 else)", tabName = "+1#resist,-1#plant,-1#meat")),
       menuItem("glands", tabName = "glands",
-               menuSubItem("deadlier glands (+1 poison)", tabName = "+1poison"),
-               menuSubItem("efficent glands (-1 poison)", tabName = "-1poison")),
-      menuItem("packAttack", tabName = "herd mentality?",
-               menuSubItem("moreHerded EATS BIGGER THINGS, LESS OF THEM", tabName = "???"),
-               menuSubItem("lessHerded", tabName = "??")),
+               menuSubItem("deadlier (+1 poison)", tabName = "+1#poison"),
+               menuSubItem("more efficent (-1 poison)", tabName = "-1#poison")),
       menuItem("wings", tabName = "wings",
-               menuSubItem("moreWinged", tabName = "???"),
-               menuSubItem("lessWinged", tabName = "??"))
+               menuSubItem("more winged (+1 flight)", tabName = "+1#flight"), #includes word wings
+               menuSubItem("less winged (-1 flight)", tabName = "-1#flight")),
+      menuItem("behavior", tabName = "behavior",
+               menuSubItem("hunts in a pack (+1 pack)", tabName = "+1#pack"), #better working and better stat?
+               menuSubItem("hunts independantly (-1 pack)", tabName = "-1#pack"))
     )})
   
 })
