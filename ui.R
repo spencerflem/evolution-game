@@ -13,11 +13,11 @@ sidebar <- dashboardSidebar(
   actionButton("confirmed","Confirm Evolution"),
   
   #STARTUP
-  h3(id = "heading", "CREATE YOUR CREATURE!"),
-  selectInput("class","Class",choices = c("carnivore","omnivore","herbivore")),
-  selectInput("race","Race",choices = c("big","average","small")),
-  textInput("name","Name", value = "test"),
-  actionButton("joined","Create Creatrue"),
+  h3(id = "heading", "CREATE YOUR SPECIES!"),
+  selectInput("class","Diet",choices = c("carnivore","omnivore","herbivore")),
+  selectInput("race","Size",choices = c("big","average","small")),
+  textInput("name","Name", value = "Nomenus Examplaris"),
+  actionButton("joined","Create Species"),
   
   #HIDDEN
   numericInput("ID","unset", value = 0)

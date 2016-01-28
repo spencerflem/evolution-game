@@ -359,3 +359,6 @@ stepSim(75,1,0.2,creatures)
 "============================================================================================="
 populationSizes
 matplot(populationSizes, type = "l", log = "y")
+
+
+matplot(populationSizes, type = "l", log = "y")

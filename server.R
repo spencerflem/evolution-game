@@ -1,6 +1,7 @@
 library(shiny)
 library(shinyjs)
 library(plyr)
+library(Rgraphviz)
 
 #if you die, new creature comes back in corectly
 #creature joining doesnt creash game TODO: priority 9
@@ -13,7 +14,7 @@ addEvolution <- function(ID, evolution) {
   
   #print("EVO")
   #print(evolution)
-  
+  popSizes <- populationSizes
   if(ID %in% submittedIDs) {
     print("NOPE")
   }
@@ -32,7 +33,7 @@ addEvolution <- function(ID, evolution) {
     numNotSubmitted <- getNumNotSubmitted()
     if(numNotSubmitted == 0) {
       submittedIDs <<- c()
-      popSizes <- stepSim(1000, .1, creatures)
+      popSizes <- stepSim(200, .5, creatures)
     }
   }
   return(popSizes)
@@ -79,6 +80,8 @@ updateView <- function() {
   hide("joined")
   hide("heading")
 }
+
+populationSizes <- c()
 
 addCreature <- function(ID, class, race, name) {
   newCreature <- cbind(name = name, baseCreature) #TODO: VERY IMPORTANT Flesh this line out. (priority 6)
@@ -142,8 +145,9 @@ stepSim  <- function(times, stepSize, creatures) {
 
 subStep <- function(stepSize, creaturesCopy) {
   growthRow <- calculateGrowthRow(creaturesCopy)
-  populationsRow <- populationsRow + growthRow * stepSize
-  populations <- sapply(populations, function(x){
+  populationsOriginal <- creaturesCopy$population
+  populationsRow <- populationsOriginal + growthRow * stepSize
+  populationsRow <- sapply(populationsRow, function(x){
     if(x < 0) {
       return(0)
     }
@@ -151,8 +155,8 @@ subStep <- function(stepSize, creaturesCopy) {
       return(x)
     }
   })
-  populations <- sapply(populations, function(x){floor(x)})
-  return(populations)
+  populationsRow <- sapply(populationsRow, function(x){floor(x)})
+  return(populationsRow)
 }
 
 calculateNumEatenMatrix <- function(creaturesCopy) {
@@ -340,7 +344,7 @@ calculateEatenMatrixFast <- function(creaturesCopy) {
 }
 
 sig <- function(x) {
-  y <- ((2/(1+exp(-(i/2.3))))-1)
+  y <- ((2/(1+exp(-(x/2.3))))-1)
   return(y)
 }
 
@@ -590,3 +594,13 @@ shinyServer(function(input, output, session) {
     )})
   
 })
+# 
+# addSession()
+# addSession()
+# addSession()
+# addCreature(sessions[1], 'la', 'le', 'lo')
+# addCreature(sessions[2], 'la', 'le', 'lo')
+# addCreature(sessions[3], 'la', 'le', 'lo')
+# addEvolution(sessions[1], '+1#speed')
+# addEvolution(sessions[2], '-1#speed')
+# addEvolution(sessions[3], '-1#size')
