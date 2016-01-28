@@ -30,14 +30,6 @@ body <- dashboardBody(
   tabBox(
     width = 12,
     tabPanel(
-      "Your Creature",
-      textOutput("yourCreature")
-    ),
-    tabPanel(
-      "Other Creatures",
-      dataTableOutput("otherCreatures")
-    ),
-    tabPanel(
       "Food Web",
       plotOutput("foodWeb")
     ),

@@ -11,8 +11,8 @@ submittedIDs <- c()
 
 addEvolution <- function(ID, evolution) {
   
-  print("EVO")
-  print(evolution)
+  #print("EVO")
+  #print(evolution)
   
   if(ID %in% submittedIDs) {
     print("NOPE")
@@ -83,15 +83,15 @@ updateView <- function() {
 addCreature <- function(ID, class, race, name) {
   newCreature <- cbind(name = name, baseCreature) #TODO: VERY IMPORTANT Flesh this line out. (priority 6)
   strID <- toString(ID)
-  print("NC")
-  print(newCreature)
+  #print("NC")
+  #print(newCreature)
   creatureRowNames <- rownames(creatures)
   creatures <<- rbind(creatures, newCreature)
   creatureRowNames <- c(creatureRowNames, strID)
   rownames(creatures) <<- creatureRowNames
   
-  populationSizes <- creatures$population
-  populationSizes <- rbind(populationSizes, populationSizes)
+  populationSizes <<- creatures$population
+  populationSizes <<- rbind(populationSizes, populationSizes)
   
   updateView()
 }
@@ -121,16 +121,16 @@ stepSim  <- function(times, subTimes, stepSize, creatures) {
   
   creaturesCopy <- creatures
   
-  print("---------------------------------------------------")
-  print(creaturesCopy$population) 
-  print("---------------------------------------------------")
+  #print("---------------------------------------------------")
+  #print(creaturesCopy$population) 
+  #print("---------------------------------------------------")
   
   for(i in 1:times) {
     creaturesCopy$population <- subStep(subTimes, stepSize, creaturesCopy)
     print(i)
-    print("---------------------------------------------------")
-    print(creaturesCopy$population)
-    print("---------------------------------------------------")
+    #print("---------------------------------------------------")
+    #print(creaturesCopy$population)
+    #print("---------------------------------------------------")
     populationSizes <<- rbind(populationSizes,creaturesCopy$population)
     
   }
@@ -142,32 +142,32 @@ stepSim  <- function(times, subTimes, stepSize, creatures) {
 
 subStep <- function(subTimes, stepSize, creaturesCopy) {
   numCreatures <- nrow(creaturesCopy)
-  print("IN")
+  #print("IN")
   eatenMatrix <<- calculateEatenMatrixFast(creaturesCopy)
-  print("INNER")
+  #print("INNER")
   catchesPerStep <- computecatchesPerStepMatrix(creaturesCopy)
-  print("INNERER")
+  #print("INNERER")
   catchesPerStepMatrix <- matrix(catchesPerStep, nrow = numCreatures, ncol = numCreatures)
-  print("INNERIST")
+  #print("INNERIST")
   populations <- creaturesCopy$population
-  print("INNERISTIST")
+  #print("INNERISTIST")
   popMatrix <- matrix(populations, nrow = numCreatures, ncol = numCreatures)
   
-  print("CatchesPerStepMtrx")
-  print(catchesPerStepMatrix)
-  print("PopulationMtrx:")
-  print(popMatrix)
+  #print("CatchesPerStepMtrx")
+  #print(catchesPerStepMatrix)
+  #print("PopulationMtrx:")
+  #print(popMatrix)
   
   for(i in 1:subTimes) {
     
     numEatenMatrix <- eatenMatrix * catchesPerStepMatrix * popMatrix
     
-    print("EatenMtrx:")
-    print(eatenMatrix)
-    print("CatchesPerStep")
-    print(catchesPerStep)
-    print("NumEatenMtrx:")
-    print(numEatenMatrix)
+    #print("EatenMtrx:")
+    #print(eatenMatrix)
+    #print("CatchesPerStep")
+    #print(catchesPerStep)
+    #print("NumEatenMtrx:")
+    #print(numEatenMatrix)
     
     growth <- calculateGrowthRow(creaturesCopy, numEatenMatrix)
     
@@ -199,12 +199,12 @@ calculateGrowthRow <- function(creaturesCopy, numEatenMatrix) {
   caloriesEatenMatrix <- numEatenMatrix * caloriesMatrix
   caloriesGained <- 2 * rowSums(caloriesEatenMatrix)
   
-  print("CaloriesMtrx:")
-  print(caloriesMatrix)
-  print("CaloriesEatenMtrx:")
-  print(caloriesEatenMatrix)
-  print("CaloriesGained:")
-  print(caloriesGained)
+  #print("CaloriesMtrx:")
+  #print(caloriesMatrix)
+  #print("CaloriesEatenMtrx:")
+  #print(caloriesEatenMatrix)
+  #print("CaloriesGained:")
+  #print(caloriesGained)
   
   ufl <- c()
   bs <- c()
@@ -225,8 +225,8 @@ calculateGrowthRow <- function(creaturesCopy, numEatenMatrix) {
     
     caloriesDifference <- caloriesGained[i] - creature$population * caloriesRequiredRow[i]
     
-    print("CD:")
-    print(caloriesDifference)
+    #print("CD:")
+    #print(caloriesDifference)
     
     if(caloriesDifference < 0) {
       underfedLosses <- (-1 * caloriesDifference) / caloriesRequiredRow[i]
@@ -247,9 +247,9 @@ calculateGrowthRow <- function(creaturesCopy, numEatenMatrix) {
     
     lifeExpectancyLosses <- creature$population / lifeExpectancyRow[i]
     
-    print("EL?LL")
-    print(eatenLosses)
-    print(lifeExpectancyLosses)
+    #print("EL?LL")
+    #print(eatenLosses)
+    #print(lifeExpectancyLosses)
     
     if(eatenLosses > lifeExpectancyLosses) {
       lifeLosses <- eatenLosses
@@ -273,32 +273,32 @@ calculateGrowthRow <- function(creaturesCopy, numEatenMatrix) {
   
   #USUALLY NOT COMMENTED OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  print("UnderfedLosses, BabiesSpawned, LifeLosses | GROWTH:")
-  print(ufl)
-  print(bs)
-  print(ll)
-  print(growth)
+  #print("UnderfedLosses, BabiesSpawned, LifeLosses | GROWTH:")
+  #print(ufl)
+  #print(bs)
+  #print(ll)
+  #print(growth)
   
-  print("-------")
+  #print("-------")
   
   return(growth)
 }
 
 calculateChanceToBeSeenMatrix <- function(creaturesCopy) {
   numCreatures <- nrow(creaturesCopy)
-  print("CTBS1")
+  #print("CTBS1")
   chanceToBeSpottedMatrix <- computeChanceToBeSpottedMatrix(creaturesCopy)
-  print("CTBS2")
+  #print("CTBS2")
   chanceToBeNearMatrix <- calculateChanceToBeNearMatrix(creaturesCopy)
-  print("CTBS3")
+  #print("CTBS3")
   chanceMatrix <- chanceToBeNearMatrix * chanceToBeSpottedMatrix
   
-  print("ChanceToBeNearMtrx:")
-  print(chanceToBeNearMatrix)
-  print("ChaceToBeSeenMatrix:")
-  print(chanceToBeSpottedMatrix)
-  print("SeenMatrixRow:")
-  print(chanceMatrix[1,])
+  #print("ChanceToBeNearMtrx:")
+  #print(chanceToBeNearMatrix)
+  #print("ChaceToBeSeenMatrix:")
+  #print(chanceToBeSpottedMatrix)
+  #print("SeenMatrixRow:")
+  #print(chanceMatrix[1,])
   
   return(chanceMatrix)
 }
@@ -306,9 +306,9 @@ calculateChanceToBeSeenMatrix <- function(creaturesCopy) {
 calculateChanceToBeNearMatrix <- function(creaturesCopy) {
   
   nearChanceCenterRow <- computeNearChanceCenterRow(creaturesCopy)
-  print("OK")
+  #print("OK")
   nearChanceSlopeRow <- computeNearChanceSlopeRow(creaturesCopy)
-  print("KO")
+  #print("KO")
   numCreatures <- nrow(creaturesCopy)
   chanceToBeNearMatrix <- matrix(0, nrow = numCreatures, ncol = numCreatures)
   for(i in 1:numCreatures) {
@@ -321,20 +321,20 @@ calculateChanceToBeNearMatrix <- function(creaturesCopy) {
 }
 
 calculateEatenMatrixFast <- function(creaturesCopy) {
-  print("INA")
+  #print("INA")
   valuesMatrix <- calculateValuesMatrix(creaturesCopy)
-  print("IOI")
+  #print("IOI")
   chanceMatrix <- calculateChanceToBeSeenMatrix(creaturesCopy)
-  print("OPL")
+  #print("OPL")
   numCreatures <- nrow(creaturesCopy)
-  print("SDE")
+  #print("SDE")
   eatenMatrix <- matrix(0, nrow = numCreatures, ncol = numCreatures)
-  print("TUA")
+  #print("TUA")
   for(i in 1:numCreatures) {
     for(j in 1:numCreatures) {
       prob <- 0
       value <- valuesMatrix[i,j]
-      print("TREEA")
+      #print("TREEA")
       if(value > 0) {
         prob <- (chanceMatrix[i,j]/100)
         for(k in 1:numCreatures) {
@@ -343,7 +343,7 @@ calculateEatenMatrixFast <- function(creaturesCopy) {
           }
         }
       }
-      print("FURA")
+      #print("FURA")
       eatenMatrix[i,j] = prob
     }
   }
@@ -413,7 +413,7 @@ computeNearChanceCenterRow <- function(creaturesCopy) {
   numCreatures <- nrow(creaturesCopy)
   nearChancesCenterRow <- c()
   for(i in 1:numCreatures) {
-    print(populationSizes)
+    #print(populationSizes)
     center <- populationSizes[1,i] * .9
     nearChancesCenterRow <- c(nearChancesCenterRow, center)
   }

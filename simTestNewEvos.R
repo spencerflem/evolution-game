@@ -5,17 +5,19 @@ library(plyr)
 #if you die, new creature comes back in corectly
 #creature joining doesnt creash game TODO: priority 9
 
+popSizes <- c()
+
 submittedIDs <- c()
 
 #HOW TO GET CATEGORY FROM EVOLUTION
 
 addEvolution <- function(ID, evolution) {
   
-  print("EVO")
-  print(evolution)
+  #print("EVO")
+  #print(evolution)
   
   if(ID %in% submittedIDs) {
-    print("NOPE")
+    #print("NOPE")
   }
   else {
     strID <- toString(ID)
@@ -32,7 +34,7 @@ addEvolution <- function(ID, evolution) {
     numNotSubmitted <- getNumNotSubmitted()
     if(numNotSubmitted == 0) {
       submittedIDs <<- c()
-      popSizes <- stepSim(1000, 1, .1, creatures)
+      popSizes <- stepSim(stepAmount, 1, .1, creatures)
     }
   }
   return(popSizes)
@@ -83,12 +85,15 @@ updateView <- function() {
 addCreature <- function(ID, class, race, name) {
   newCreature <- cbind(name = name, baseCreature) #TODO: VERY IMPORTANT Flesh this line out. (priority 6)
   strID <- toString(ID)
-  print("NC")
-  print(newCreature)
+  #print("NC")
+  #print(newCreature)
   creatureRowNames <- rownames(creatures)
   creatures <<- rbind(creatures, newCreature)
   creatureRowNames <- c(creatureRowNames, strID)
   rownames(creatures) <<- creatureRowNames
+  
+  populationSizes <<- creatures$population
+  populationSizes <<- rbind(populationSizes, populationSizes)
   
   updateView()
 }
@@ -112,25 +117,22 @@ addSession <- function() {
 
 #First Time Setup
 numCreatures <- nrow(creatures)
-populationSizes <- creatures$population
-populationSizes <- rbind(populationSizes, populationSizes)
 eatenMatrix <- matrix(0, nrow = numCreatures, ncol = numCreatures)
 
 stepSim  <- function(times, subTimes, stepSize, creatures) {
   
   creaturesCopy <- creatures
   
-  print(creatures)
-  print("---------------------------------------------------")
-  print(creaturesCopy$populations) 
-  print("---------------------------------------------------")
+  #print("---------------------------------------------------")
+  #print(creaturesCopy$population) 
+  #print("---------------------------------------------------")
   
   for(i in 1:times) {
     creaturesCopy$population <- subStep(subTimes, stepSize, creaturesCopy)
     print(i)
-    print("---------------------------------------------------")
-    print(creaturesCopy$population)
-    print("---------------------------------------------------")
+    #print("---------------------------------------------------")
+    #print(creaturesCopy$population)
+    #print("---------------------------------------------------")
     populationSizes <<- rbind(populationSizes,creaturesCopy$population)
     
   }
@@ -142,10 +144,15 @@ stepSim  <- function(times, subTimes, stepSize, creatures) {
 
 subStep <- function(subTimes, stepSize, creaturesCopy) {
   numCreatures <- nrow(creaturesCopy)
+  #print("IN")
   eatenMatrix <<- calculateEatenMatrixFast(creaturesCopy)
+  #print("INNER")
   catchesPerStep <- computecatchesPerStepMatrix(creaturesCopy)
+  #print("INNERER")
   catchesPerStepMatrix <- matrix(catchesPerStep, nrow = numCreatures, ncol = numCreatures)
+  #print("INNERIST")
   populations <- creaturesCopy$population
+  #print("INNERISTIST")
   popMatrix <- matrix(populations, nrow = numCreatures, ncol = numCreatures)
   
   #print("CatchesPerStepMtrx")
@@ -242,9 +249,9 @@ calculateGrowthRow <- function(creaturesCopy, numEatenMatrix) {
     
     lifeExpectancyLosses <- creature$population / lifeExpectancyRow[i]
     
-    print("EL?LL")
-    print(eatenLosses)
-    print(lifeExpectancyLosses)
+    #print("EL?LL")
+    #print(eatenLosses)
+    #print(lifeExpectancyLosses)
     
     if(eatenLosses > lifeExpectancyLosses) {
       lifeLosses <- eatenLosses
@@ -281,8 +288,11 @@ calculateGrowthRow <- function(creaturesCopy, numEatenMatrix) {
 
 calculateChanceToBeSeenMatrix <- function(creaturesCopy) {
   numCreatures <- nrow(creaturesCopy)
+  #print("CTBS1")
   chanceToBeSpottedMatrix <- computeChanceToBeSpottedMatrix(creaturesCopy)
+  #print("CTBS2")
   chanceToBeNearMatrix <- calculateChanceToBeNearMatrix(creaturesCopy)
+  #print("CTBS3")
   chanceMatrix <- chanceToBeNearMatrix * chanceToBeSpottedMatrix
   
   #print("ChanceToBeNearMtrx:")
@@ -298,8 +308,9 @@ calculateChanceToBeSeenMatrix <- function(creaturesCopy) {
 calculateChanceToBeNearMatrix <- function(creaturesCopy) {
   
   nearChanceCenterRow <- computeNearChanceCenterRow(creaturesCopy)
+  #print("OK")
   nearChanceSlopeRow <- computeNearChanceSlopeRow(creaturesCopy)
-  
+  #print("KO")
   numCreatures <- nrow(creaturesCopy)
   chanceToBeNearMatrix <- matrix(0, nrow = numCreatures, ncol = numCreatures)
   for(i in 1:numCreatures) {
@@ -312,14 +323,20 @@ calculateChanceToBeNearMatrix <- function(creaturesCopy) {
 }
 
 calculateEatenMatrixFast <- function(creaturesCopy) {
+  #print("INA")
   valuesMatrix <- calculateValuesMatrix(creaturesCopy)
+  #print("IOI")
   chanceMatrix <- calculateChanceToBeSeenMatrix(creaturesCopy)
+  #print("OPL")
   numCreatures <- nrow(creaturesCopy)
+  #print("SDE")
   eatenMatrix <- matrix(0, nrow = numCreatures, ncol = numCreatures)
+  #print("TUA")
   for(i in 1:numCreatures) {
     for(j in 1:numCreatures) {
       prob <- 0
       value <- valuesMatrix[i,j]
+      #print("TREEA")
       if(value > 0) {
         prob <- (chanceMatrix[i,j]/100)
         for(k in 1:numCreatures) {
@@ -328,6 +345,7 @@ calculateEatenMatrixFast <- function(creaturesCopy) {
           }
         }
       }
+      #print("FURA")
       eatenMatrix[i,j] = prob
     }
   }
@@ -397,6 +415,7 @@ computeNearChanceCenterRow <- function(creaturesCopy) {
   numCreatures <- nrow(creaturesCopy)
   nearChancesCenterRow <- c()
   for(i in 1:numCreatures) {
+    #print(populationSizes)
     center <- populationSizes[1,i] * .9
     nearChancesCenterRow <- c(nearChancesCenterRow, center)
   }
@@ -584,8 +603,33 @@ shinyServer(function(input, output, session) {
     )})
   
 })
-addCreature('9', 'la', 'le', 'lo')
-populationSizes <- creatures$population
-populationSizes <- rbind(populationSizes, populationSizes)
-addEvolution('9', '+1#speed')
+
+addSession()
+addSession()
+addSession()
+addSession()
+addSession()
+addSession()
+
+
+
+stepAmount <- 1000
+
+addCreature(sessions[1], 'la', 'la', 'la')
+addCreature(sessions[2], 'le', 'le', 'le')
+addCreature(sessions[3], 'le', 'le', 'le')
+addCreature(sessions[4], 'le', 'le', 'le')
+addCreature(sessions[5], 'le', 'le', 'le')
+addCreature(sessions[6], 'le', 'le', 'le')
+
+
+
+
+
+addEvolution(sessions[1], '+1#plant,-1#meat')
+addEvolution(sessions[2], '-1#plant,+1#meat')
+addEvolution(sessions[3], '-1#plant,+1#meat')
+addEvolution(sessions[4], '-1#plant,+1#meat')
+addEvolution(sessions[5], '-1#plant,+1#meat')
+addEvolution(sessions[6], '-1#plant,+1#meat')
 matplot(populationSizes, type = "l", log = "y")
