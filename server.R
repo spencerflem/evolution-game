@@ -32,7 +32,7 @@ addEvolution <- function(ID, evolution) {
     numNotSubmitted <- getNumNotSubmitted()
     if(numNotSubmitted == 0) {
       submittedIDs <<- c()
-      popSizes <- stepSim(1000, 1, .1, creatures)
+      popSizes <- stepSim(1000, .1, creatures)
     }
   }
   return(popSizes)
@@ -117,7 +117,7 @@ addSession <- function() {
 numCreatures <- nrow(creatures)
 eatenMatrix <- matrix(0, nrow = numCreatures, ncol = numCreatures)
 
-stepSim  <- function(times, subTimes, stepSize, creatures) {
+stepSim  <- function(times, stepSize, creatures) {
   
   creaturesCopy <- creatures
   
@@ -126,7 +126,7 @@ stepSim  <- function(times, subTimes, stepSize, creatures) {
   #print("---------------------------------------------------")
   
   for(i in 1:times) {
-    creaturesCopy$population <- subStep(subTimes, stepSize, creaturesCopy)
+    creaturesCopy$population <- subStep(stepSize, creaturesCopy)
     print(i)
     #print("---------------------------------------------------")
     #print(creaturesCopy$population)
@@ -140,14 +140,27 @@ stepSim  <- function(times, subTimes, stepSize, creatures) {
   return(populationSizes)
 }
 
-subStep <- function(subTimes, stepSize, creaturesCopy) {
+subStep <- function(stepSize, creaturesCopy) {
+  growthRow <- calculateGrowthRow(creaturesCopy)
+  populationsRow <- populationsRow + growthRow * stepSize
+  populations <- sapply(populations, function(x){
+    if(x < 0) {
+      return(0)
+    }
+    else {
+      return(x)
+    }
+  })
+  populations <- sapply(populations, function(x){floor(x)})
+  return(populations)
+}
+
+calculateNumEatenMatrix <- function(creaturesCopy) {
   numCreatures <- nrow(creaturesCopy)
   #print("IN")
   eatenMatrix <<- calculateEatenMatrixFast(creaturesCopy)
   #print("INNER")
-  catchesPerStep <- computecatchesPerStepMatrix(creaturesCopy)
-  #print("INNERER")
-  catchesPerStepMatrix <- matrix(catchesPerStep, nrow = numCreatures, ncol = numCreatures)
+  catchesPerStepMatrix <- computecatchesPerStepMatrix(creaturesCopy)
   #print("INNERIST")
   populations <- creaturesCopy$population
   #print("INNERISTIST")
@@ -158,37 +171,13 @@ subStep <- function(subTimes, stepSize, creaturesCopy) {
   #print("PopulationMtrx:")
   #print(popMatrix)
   
-  for(i in 1:subTimes) {
-    
-    numEatenMatrix <- eatenMatrix * catchesPerStepMatrix * popMatrix
-    
-    #print("EatenMtrx:")
-    #print(eatenMatrix)
-    #print("CatchesPerStep")
-    #print(catchesPerStep)
-    #print("NumEatenMtrx:")
-    #print(numEatenMatrix)
-    
-    growth <- calculateGrowthRow(creaturesCopy, numEatenMatrix)
-    
-    populations <- populations + growth * stepSize
-    
-    populations <- sapply(populations, function(x){
-      if(x < 0) {
-        return(0)
-      }
-      else {
-        return(x)
-      }
-    })
-    
-  }
-  populations <- sapply(populations, function(x){floor(x)})
-  
-  return(populations)
+  numEatenMatrix <- eatenMatrix * catchesPerStepMatrix * popMatrix
 }
 
-calculateGrowthRow <- function(creaturesCopy, numEatenMatrix) {
+calculateGrowthRow <- function(creaturesCopy) {
+  
+  numEatenMatrix <- calculateNumEatenMatrix(creaturesCopy)
+  
   numCreatures <- nrow(creaturesCopy)
   growth <- c()
   
