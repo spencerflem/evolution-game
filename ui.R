@@ -27,17 +27,8 @@ body <- dashboardBody(
   
   useShinyjs(),
   
-  tabBox(
-    width = 12,
-    tabPanel(
-      "Food Web",
-      plotOutput("foodWeb")
-    ),
-    tabPanel(
-      "Populations",
-      plotOutput("populations")
-    )
-  )
+  plotOutput("populations")
+  
 )
 
 dashboardPage(

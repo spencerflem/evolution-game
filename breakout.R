@@ -5,6 +5,15 @@ library(plyr)
 #if you die, new creature comes back in corectly
 #creature joining doesnt creash game TODO: priority 9
 
+
+
+
+
+#WINGS DONT HELP CATCH GRASS
+
+
+
+
 submittedIDs <- c()
 
 #HOW TO GET CATEGORY FROM EVOLUTION

@@ -33,7 +33,7 @@ addEvolution <- function(ID, evolution) {
     numNotSubmitted <- getNumNotSubmitted()
     if(numNotSubmitted == 0) {
       submittedIDs <<- c()
-      popSizes <- stepSim(200, .5, creatures)
+      popSizes <- stepSim(500, .01, creatures)
     }
   }
   return(popSizes)
@@ -64,7 +64,7 @@ prey4 <- data.frame(name = "prey", popSize = 350, calories = 100, catchesPerStep
 prey5 <- data.frame(name = "prey", popSize = 350, calories = 400, catchesPerStep = 1.5, seenChance = 70, predator = FALSE, grass = FALSE, caloriesRequired = 20, lifeExpectancy = 10, babyCalories = 20, maxBabies = 8, babySurviveChance = 45, nearChanceCenter = 310, nearChanceSlope = 35)
 
 grass <- data.frame(population = 20000, size = 0, speed = 0, def = 0, camo = 0, sight = 0, spot = 0, plant = 0, meat = 0, flight = -5, pack = 0, grass = TRUE)
-baseCreature <- data.frame(population = 200, size = 0, speed = 0, def = 0, camo = 0, sight = 0, spot = 0, plant = 0, meat = 0, flight = -5, pack = 0, grass = FALSE)
+baseCreature <- data.frame(population = 300, size = 0, speed = 0, def = 0, camo = 0, sight = 0, spot = 0, plant = 0, meat = 0, flight = -5, pack = 0, grass = FALSE)
 #MORE EXCEPTIONS FOR GRASS!
 
 creatures <- cbind(name = 'grass', grass)
@@ -84,7 +84,33 @@ updateView <- function() {
 populationSizes <- c()
 
 addCreature <- function(ID, class, race, name) {
-  newCreature <- cbind(name = name, baseCreature) #TODO: VERY IMPORTANT Flesh this line out. (priority 6)
+  newCreature <- cbind(name = name, baseCreature)
+  
+  if(class == "carnivore") {
+    newCreature$population <- newCreature$population - 50
+    newCreature$pack <- newCreature$pack + 2
+    newCreature$sight <- newCreature$sight + 1
+    newCreature$spot <- newCreature$spot + 1
+    newCreature$meat <- newCreature$meat + 6
+    newCreature$meat <- newCreature$plant - 6
+  }
+  if(class == "herbivore") {
+    newCreature$population <- newCreature$population + 75
+    newCreature$camo <- newCreature$camo + 1
+    newCreature$def <- newCreature$def + 1
+    newCreature$plant <- newCreature$plant + 6
+    newCreature$plant <- newCreature$meat - 6
+  }
+  
+  if(race == "big") {
+    newCreature$population <- newCreature$population - 100
+    newCreature$speed <- newCreature$speed - 2
+  }
+  if(race == "small") {
+    newCreature$population <- newCreature$population + 100
+    newCreature$speed <- newCreature$speed + 2
+  }
+
   strID <- toString(ID)
   #print("NC")
   #print(newCreature)
@@ -466,14 +492,14 @@ computeCaloriesMatrix <- function(creaturesCopy) {
   
   for(i in 1:numCreatures) {
     for(j in 1:numCreatures) {
-      baseMultiplier <- 3
+      baseMultiplier <- 5
       if(creaturesCopy[j,]$grass == TRUE) {
-        typeMod <- 3 * sig(creaturesCopy[i,]$plant)
+        typeMod <- 5 * sig(creaturesCopy[i,]$plant)
       }
       else {
-        typeMod <- 3 * sig(creaturesCopy[i,]$meat)
+        typeMod <- 5 * sig(creaturesCopy[i,]$meat)
       }
-      caloriesMultiplier <- baseMultiplier + typeMod
+      caloriesMultiplier <- baseMultiplier + typeMod * .4
       calories <- caloriesRequiredRow[j] * caloriesMultiplier
       caloriesMatrix[i,j] <- calories
     }
@@ -509,7 +535,7 @@ computeCaloriesRequiredRow <- function(creaturesCopy) {
   for(i in 1:numCreatures) {
     multiplier <- xpo(creaturesCopy[i,]$size)
     speedCals <- 40 * xpo(creaturesCopy[i,]$speed)
-    flightCals <- 40 * xpo(creaturesCopy[i,]$flight)
+    flightCals <- 40 * xpo(creaturesCopy[i,]$flight) * (sig(creaturesCopy[i,]$size) + 1)
     sightCals <- 20 * xpo(creaturesCopy[i,]$sight)
     spotCals <- 20 * xpo(creaturesCopy[i,]$spot)
     caloriesRequired <- multiplier * (speedCals + flightCals + sightCals + spotCals)
