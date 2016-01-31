@@ -2,6 +2,14 @@ library(shiny)
 library(shinyjs)
 library(plyr)
 
+#FLESHOUT ADD CREATURE
+#MAKE IT HARDER TO SPEC INTO EATING PREY AND GRASS
+
+# r vs k?
+
+
+
+
 #if you die, new creature comes back in corectly
 #creature joining doesnt creash game TODO: priority 9
 
@@ -231,7 +239,7 @@ calculateGrowthRow <- function(creaturesCopy, numEatenMatrix) {
     #print(caloriesDifference)
     
     if(caloriesDifference < 0) {
-      underfedLosses <- (-1 * caloriesDifference) / caloriesRequiredRow[i]
+      underfedLosses <- (-1 * caloriesDifference) * caloriesRequiredRow[i]
     }
     else {
       babiesSpawned <- caloriesDifference / babyCaloriesRow[i]
@@ -613,7 +621,6 @@ addSession()
 
 
 
-stepAmount <- 1000
 
 addCreature(sessions[1], 'la', 'la', 'la')
 addCreature(sessions[2], 'le', 'le', 'le')
@@ -622,9 +629,11 @@ addCreature(sessions[4], 'le', 'le', 'le')
 addCreature(sessions[5], 'le', 'le', 'le')
 addCreature(sessions[6], 'le', 'le', 'le')
 
+#ADD CREATURES MANUALLY
+#DIFFERENTIATE STATS
 
 
-
+stepAmount <- 1000
 
 addEvolution(sessions[1], '+1#plant,-1#meat')
 addEvolution(sessions[2], '-1#plant,+1#meat')

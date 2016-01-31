@@ -33,7 +33,7 @@ addEvolution <- function(ID, evolution) {
     numNotSubmitted <- getNumNotSubmitted()
     if(numNotSubmitted == 0) {
       submittedIDs <<- c()
-      popSizes <- stepSim(500, .01, creatures)
+      popSizes <- stepSim(2000, .01, creatures)
     }
   }
   return(popSizes)
@@ -122,6 +122,16 @@ addCreature <- function(ID, class, race, name) {
   populationSizes <<- creatures$population
   populationSizes <<- rbind(populationSizes, populationSizes)
   
+  numCreatures <- nrow(creatures)
+  eatenMatrix <<- matrix(0, nrow = numCreatures, ncol = numCreatures)
+  
+  #FOR RESULTS SECTION:
+  lifeLossesMatrix <<- matrix(0, ncol = numCreatures)
+  babiesSpawnedMatrix <<- matrix(0, ncol = numCreatures)
+  underfedLossesMatrix <<- matrix(0, ncol = numCreatures)
+  growthMatrix <<- matrix(0, ncol = numCreatures)
+  
+  
   updateView()
 }
 
@@ -142,9 +152,30 @@ addSession <- function() {
 
 #########SIM BEGINS HERE
 
-#First Time Setup
+#setup
 numCreatures <- nrow(creatures)
 eatenMatrix <- matrix(0, nrow = numCreatures, ncol = numCreatures)
+
+#FOR RESULTS SECTION:
+lifeLossesMatrix <- matrix(0, ncol = numCreatures)
+babiesSpawnedMatrix <- matrix(0, ncol = numCreatures)
+underfedLossesMatrix <- matrix(0, ncol = numCreatures)
+growthMatrix <- matrix(0, ncol = numCreatures)
+
+
+
+graphResults <- function() {
+  matplot(populationSizes[-1,], type = "l", log = "y")
+  matplot(babiesSpawnedMatrix[-1,], type = "l")
+  matplot(underfedLossesMatrix[-1,], type = "l")
+  matplot(growthMatrix[-1,], type = "l")
+  matplot(lifeLossesMatrix[-1,], type = "l")
+  losses <- cbind(underfedLossesMatrix[,2], lifeLossesMatrix[,2])
+  barplot(t(losses),col=heat.colors(2))
+}
+
+
+
 
 stepSim  <- function(times, stepSize, creatures) {
   
@@ -165,6 +196,8 @@ stepSim  <- function(times, stepSize, creatures) {
   }
   
   creatures$population <<- creaturesCopy$population
+  
+  graphResults()
   
   return(populationSizes)
 }
@@ -297,6 +330,11 @@ calculateGrowthRow <- function(creaturesCopy) {
   #print(bs)
   #print(ll)
   #print(growth)
+  
+  underfedLossesMatrix <<- rbind(underfedLossesMatrix, ufl)
+  babiesSpawnedMatrix <<- rbind(babiesSpawnedMatrix, bs)
+  lifeLossesMatrix <<- rbind(lifeLossesMatrix, ll)
+  growthMatrix <<- rbind(growthMatrix, growth)
   
   #print("-------")
   

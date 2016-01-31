@@ -96,3 +96,11 @@ evolutions <- list(
 )
 
 evolutionsFrame <- computeEvoFrame(evolutions)
+
+
+
+
+
+lifeLosses <- matrix(0, ncol = 2)
+lifeLosses <- rbind(lifeLosses, c(1,2))
+lifeLosses
