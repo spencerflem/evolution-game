@@ -33,7 +33,7 @@ addEvolution <- function(ID, evolution) {
     numNotSubmitted <- getNumNotSubmitted()
     if(numNotSubmitted == 0) {
       submittedIDs <<- c()
-      popSizes <- stepSim(2000, .01, creatures)
+      popSizes <- stepSim(2000, .1, creatures)
     }
   }
   return(popSizes)
@@ -92,14 +92,14 @@ addCreature <- function(ID, class, race, name) {
     newCreature$sight <- newCreature$sight + 1
     newCreature$spot <- newCreature$spot + 1
     newCreature$meat <- newCreature$meat + 6
-    newCreature$meat <- newCreature$plant - 6
+    newCreature$plant <- newCreature$plant - 6
   }
   if(class == "herbivore") {
     newCreature$population <- newCreature$population + 75
     newCreature$camo <- newCreature$camo + 1
     newCreature$def <- newCreature$def + 1
     newCreature$plant <- newCreature$plant + 6
-    newCreature$plant <- newCreature$meat - 6
+    newCreature$meat <- newCreature$meat - 6
   }
   
   if(race == "big") {
@@ -112,8 +112,8 @@ addCreature <- function(ID, class, race, name) {
   }
 
   strID <- toString(ID)
-  #print("NC")
-  #print(newCreature)
+  print("NC")
+  print(newCreature)
   creatureRowNames <- rownames(creatures)
   creatures <<- rbind(creatures, newCreature)
   creatureRowNames <- c(creatureRowNames, strID)
@@ -165,13 +165,34 @@ growthMatrix <- matrix(0, ncol = numCreatures)
 
 
 graphResults <- function() {
-  matplot(populationSizes[-1,], type = "l", log = "y")
-  matplot(babiesSpawnedMatrix[-1,], type = "l")
-  matplot(underfedLossesMatrix[-1,], type = "l")
-  matplot(growthMatrix[-1,], type = "l")
-  matplot(lifeLossesMatrix[-1,], type = "l")
-  losses <- cbind(underfedLossesMatrix[,2], lifeLossesMatrix[,2])
-  barplot(t(losses),col=heat.colors(2))
+  
+  folder <- paste0("C://Users//Katherine Hoffman//Desktop//", folderName)
+  
+  popSizeFile <- paste0(folder, "//populations.svg")
+  babiesSpawnedFile <- paste0(folder, "//babies.svg")
+  underfedLossesFile <- paste0(folder, "//underfed.svg")
+  growthFile <- paste0(folder, "//growth.svg")
+  lifeLossesFile <- paste0(folder, "//lifelosses.svg")
+  
+  svg(file=popSizeFile)
+    matplot(populationSizes[-1,], type = "l", log = "y")
+  dev.off()
+  
+  svg(file=babiesSpawnedFile)
+    matplot(babiesSpawnedMatrix[-1,], type = "l")
+  dev.off()
+  
+  svg(file=underfedLossesFile)
+    matplot(underfedLossesMatrix[-1,], type = "l")
+  dev.off()
+  
+  svg(file=growthFile)
+    matplot(growthMatrix[-1,], type = "l")
+  dev.off()
+  
+  svg(file=lifeLossesFile)
+    matplot(lifeLossesMatrix[-1,], type = "l")
+  dev.off()
 }
 
 
@@ -530,14 +551,14 @@ computeCaloriesMatrix <- function(creaturesCopy) {
   
   for(i in 1:numCreatures) {
     for(j in 1:numCreatures) {
-      baseMultiplier <- 5
+      baseMultiplier <- 1
       if(creaturesCopy[j,]$grass == TRUE) {
-        typeMod <- 5 * sig(creaturesCopy[i,]$plant)
+        typeMod <- 1 * sig(creaturesCopy[i,]$plant)
       }
       else {
-        typeMod <- 5 * sig(creaturesCopy[i,]$meat)
+        typeMod <- 1 * sig(creaturesCopy[i,]$meat)
       }
-      caloriesMultiplier <- baseMultiplier + typeMod * .4
+      caloriesMultiplier <- baseMultiplier + typeMod
       calories <- caloriesRequiredRow[j] * caloriesMultiplier
       caloriesMatrix[i,j] <- calories
     }
@@ -554,7 +575,7 @@ calculateValuesMatrix <- function(creaturesCopy) {
   
   for(i in 1:numCreatures) {
     for(j in 1:numCreatures) {
-      value <- caloriesMatrix[i,j] / catchesPerStepMatrix[i,j]
+      value <- caloriesMatrix[i,j] * catchesPerStepMatrix[i,j]
       if(i == j) {
         value <- 0
       }
@@ -594,11 +615,6 @@ shinyServer(function(input, output, session) {
   hide("confirmed")
   hide("ID")
   
-  output$foodWeb <- renderPlot({
-    foodWeb<-new("graphAM", adjMat=eatenMatrix, edgemode="directed")
-    plot(foodWeb)
-  })
-  
   output$populations <- renderPlot({
     matplot(creaturesReact$popSizes, type = "l", log = "y")
   })
@@ -607,10 +623,6 @@ shinyServer(function(input, output, session) {
   
   creaturesReact <- reactiveValues()
   creaturesReact$popSizes <- c(0,6,7)
-  
-  output$yourCreature <- renderText(testText$test) #TODO: priority 7 (only in sidebar? advanced stats)
-  
-  output$otherCreatures <- renderDataTable(creatures) #TODO priority 8 (view basic stats of all creaures)
   
   observeEvent(input$selectedEvo, {enable("confirmed")})
   
@@ -668,3 +680,5 @@ shinyServer(function(input, output, session) {
 # addEvolution(sessions[1], '+1#speed')
 # addEvolution(sessions[2], '-1#speed')
 # addEvolution(sessions[3], '-1#size')
+
+folderName <- "grass, averageHerb-eeyes, smallCarn-eeyes"
