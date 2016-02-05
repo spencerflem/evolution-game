@@ -3,17 +3,12 @@ library(shinyjs)
 library(plyr)
 library(Rgraphviz)
 
-#if you die, new creature comes back in corectly
-#creature joining doesnt creash game TODO: priority 9
 
 submittedIDs <- c()
 
-#HOW TO GET CATEGORY FROM EVOLUTION
 
 addEvolution <- function(ID, evolution) {
   
-  #print("EVO")
-  #print(evolution)
   popSizes <- populationSizes
   if(ID %in% submittedIDs) {
     print("NOPE")
@@ -50,18 +45,6 @@ getNumNotSubmitted <- function() {
   }
   return(count)
 }
-
-grass <- data.frame(name = "grass", popSize = 20000, calories = 25, catchesPerStep = 2, seenChance = 95, predator = FALSE, grass = TRUE, caloriesRequired = -1, lifeExpectancy = -1, babyCalories = -1, maxBabies = -1, babySurviveChance = -1, nearChanceCenter = 18000, nearChanceSlope = 2000)
-
-pred1 <- data.frame(name = "predator", popSize = 100, calories = 800, catchesPerStep = 0.4, seenChance = 20, predator = TRUE, grass = FALSE, caloriesRequired = 200, lifeExpectancy = 30, babyCalories = 120, maxBabies = 2, babySurviveChance = 70, nearChanceCenter = 600, nearChanceSlope = 1000)
-pred2 <- data.frame(name = "predator", popSize = 100, calories = 1000, catchesPerStep = 0.6, seenChance = 20, predator = TRUE, grass = FALSE, caloriesRequired = 150, lifeExpectancy = 25, babyCalories = 110, maxBabies = 1, babySurviveChance = 85, nearChanceCenter = 600, nearChanceSlope = 1000)
-pred3 <- data.frame(name = "predator", popSize = 100, calories = 1000, catchesPerStep = 0.4, seenChance = 10, predator = TRUE, grass = FALSE, caloriesRequired = 200, lifeExpectancy = 30, babyCalories = 85, maxBabies = 3, babySurviveChance = 75, nearChanceCenter = 600, nearChanceSlope = 1000)
-
-prey1 <- data.frame(name = "prey", popSize = 350, calories = 300, catchesPerStep = 0.7, seenChance = 60, predator = FALSE, grass = FALSE, caloriesRequired = 30, lifeExpectancy = 10, babyCalories = 20, maxBabies = 8, babySurviveChance = 40, nearChanceCenter = 310, nearChanceSlope = 35)
-prey2 <- data.frame(name = "prey", popSize = 350, calories = 300, catchesPerStep = 1.8, seenChance = 30, predator = FALSE, grass = FALSE, caloriesRequired = 55, lifeExpectancy = 8, babyCalories = 15, maxBabies = 8, babySurviveChance = 30, nearChanceCenter = 310, nearChanceSlope = 35)
-prey3 <- data.frame(name = "prey", popSize = 350, calories = 200, catchesPerStep = 0.8, seenChance = 60, predator = FALSE, grass = FALSE, caloriesRequired = 40, lifeExpectancy = 10, babyCalories = 10, maxBabies = 12, babySurviveChance = 40, nearChanceCenter = 310, nearChanceSlope = 35)
-prey4 <- data.frame(name = "prey", popSize = 350, calories = 100, catchesPerStep = 1.0, seenChance = 30, predator = FALSE, grass = FALSE, caloriesRequired = 20, lifeExpectancy = 12, babyCalories = 12, maxBabies = 14, babySurviveChance = 35, nearChanceCenter = 310, nearChanceSlope = 35)
-prey5 <- data.frame(name = "prey", popSize = 350, calories = 400, catchesPerStep = 1.5, seenChance = 70, predator = FALSE, grass = FALSE, caloriesRequired = 20, lifeExpectancy = 10, babyCalories = 20, maxBabies = 8, babySurviveChance = 45, nearChanceCenter = 310, nearChanceSlope = 35)
 
 grass <- data.frame(population = 20000, size = 0, speed = 0, def = 0, camo = 0, sight = 0, spot = 0, plant = 0, meat = 0, flight = -5, pack = 0, grass = TRUE)
 baseCreature <- data.frame(population = 300, size = 0, speed = 0, def = 0, camo = 0, sight = 0, spot = 0, plant = 0, meat = 0, flight = -5, pack = 0, grass = FALSE)
@@ -112,8 +95,6 @@ addCreature <- function(ID, class, race, name) {
   }
 
   strID <- toString(ID)
-  print("NC")
-  print(newCreature)
   creatureRowNames <- rownames(creatures)
   creatures <<- rbind(creatures, newCreature)
   creatureRowNames <- c(creatureRowNames, strID)
@@ -163,10 +144,9 @@ underfedLossesMatrix <- matrix(0, ncol = numCreatures)
 growthMatrix <- matrix(0, ncol = numCreatures)
 
 
-
 graphResults <- function() {
   
-  folder <- paste0("C://Users//Katherine Hoffman//Desktop//", folderName)
+  folder <- paste0("C://Users//me//Desktop//", folderName)
   
   popSizeFile <- paste0(folder, "//populations.svg")
   babiesSpawnedFile <- paste0(folder, "//babies.svg")
@@ -241,20 +221,10 @@ subStep <- function(stepSize, creaturesCopy) {
 
 calculateNumEatenMatrix <- function(creaturesCopy) {
   numCreatures <- nrow(creaturesCopy)
-  #print("IN")
   eatenMatrix <<- calculateEatenMatrixFast(creaturesCopy)
-  #print("INNER")
   catchesPerStepMatrix <- computecatchesPerStepMatrix(creaturesCopy)
-  #print("INNERIST")
   populations <- creaturesCopy$population
-  #print("INNERISTIST")
   popMatrix <- matrix(populations, nrow = numCreatures, ncol = numCreatures)
-  
-  #print("CatchesPerStepMtrx")
-  #print(catchesPerStepMatrix)
-  #print("PopulationMtrx:")
-  #print(popMatrix)
-  
   numEatenMatrix <- eatenMatrix * catchesPerStepMatrix * popMatrix
 }
 
@@ -271,13 +241,6 @@ calculateGrowthRow <- function(creaturesCopy) {
   
   caloriesEatenMatrix <- numEatenMatrix * caloriesMatrix
   caloriesGained <- 2 * rowSums(caloriesEatenMatrix)
-  
-  #print("CaloriesMtrx:")
-  #print(caloriesMatrix)
-  #print("CaloriesEatenMtrx:")
-  #print(caloriesEatenMatrix)
-  #print("CaloriesGained:")
-  #print(caloriesGained)
   
   ufl <- c()
   bs <- c()
@@ -298,9 +261,6 @@ calculateGrowthRow <- function(creaturesCopy) {
     
     caloriesDifference <- caloriesGained[i] - creature$population * caloriesRequiredRow[i]
     
-    #print("CD:")
-    #print(caloriesDifference)
-    
     if(caloriesDifference < 0) {
       underfedLosses <- (-1 * caloriesDifference) / caloriesRequiredRow[i]
     }
@@ -319,10 +279,6 @@ calculateGrowthRow <- function(creaturesCopy) {
     eatenLosses <- numEaten[i]
     
     lifeExpectancyLosses <- creature$population / lifeExpectancyRow[i]
-    
-    #print("EL?LL")
-    #print(eatenLosses)
-    #print(lifeExpectancyLosses)
     
     if(eatenLosses > lifeExpectancyLosses) {
       lifeLosses <- eatenLosses
@@ -343,9 +299,6 @@ calculateGrowthRow <- function(creaturesCopy) {
     
   }
   
-  
-  #USUALLY NOT COMMENTED OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
   #print("UnderfedLosses, BabiesSpawned, LifeLosses | GROWTH:")
   #print(ufl)
   #print(bs)
@@ -364,29 +317,15 @@ calculateGrowthRow <- function(creaturesCopy) {
 
 calculateChanceToBeSeenMatrix <- function(creaturesCopy) {
   numCreatures <- nrow(creaturesCopy)
-  #print("CTBS1")
   chanceToBeSpottedMatrix <- computeChanceToBeSpottedMatrix(creaturesCopy)
-  #print("CTBS2")
   chanceToBeNearMatrix <- calculateChanceToBeNearMatrix(creaturesCopy)
-  #print("CTBS3")
   chanceMatrix <- chanceToBeNearMatrix * chanceToBeSpottedMatrix
-  
-  #print("ChanceToBeNearMtrx:")
-  #print(chanceToBeNearMatrix)
-  #print("ChaceToBeSeenMatrix:")
-  #print(chanceToBeSpottedMatrix)
-  #print("SeenMatrixRow:")
-  #print(chanceMatrix[1,])
-  
   return(chanceMatrix)
 }
 
 calculateChanceToBeNearMatrix <- function(creaturesCopy) {
-  
   nearChanceCenterRow <- computeNearChanceCenterRow(creaturesCopy)
-  #print("OK")
   nearChanceSlopeRow <- computeNearChanceSlopeRow(creaturesCopy)
-  #print("KO")
   numCreatures <- nrow(creaturesCopy)
   chanceToBeNearMatrix <- matrix(0, nrow = numCreatures, ncol = numCreatures)
   for(i in 1:numCreatures) {
@@ -399,20 +338,14 @@ calculateChanceToBeNearMatrix <- function(creaturesCopy) {
 }
 
 calculateEatenMatrixFast <- function(creaturesCopy) {
-  #print("INA")
   valuesMatrix <- calculateValuesMatrix(creaturesCopy)
-  #print("IOI")
   chanceMatrix <- calculateChanceToBeSeenMatrix(creaturesCopy)
-  #print("OPL")
   numCreatures <- nrow(creaturesCopy)
-  #print("SDE")
   eatenMatrix <- matrix(0, nrow = numCreatures, ncol = numCreatures)
-  #print("TUA")
   for(i in 1:numCreatures) {
     for(j in 1:numCreatures) {
       prob <- 0
       value <- valuesMatrix[i,j]
-      #print("TREEA")
       if(value > 0) {
         prob <- (chanceMatrix[i,j]/100)
         for(k in 1:numCreatures) {
@@ -421,7 +354,6 @@ calculateEatenMatrixFast <- function(creaturesCopy) {
           }
         }
       }
-      #print("FURA")
       eatenMatrix[i,j] = prob
     }
   }
@@ -438,7 +370,6 @@ xpo <- function(x) {
   return(y)
 }
 
-#untested
 computeChanceToBeSpottedMatrix <- function(creaturesCopy) {
   numCreatures <- nrow(creaturesCopy)
   chanceToBeSpottedMatrix <- matrix(0, nrow = numCreatures, ncol = numCreatures, byrow = TRUE)
@@ -487,11 +418,9 @@ computecatchesPerStepMatrix <- function(creaturesCopy) {
 }
 
 computeNearChanceCenterRow <- function(creaturesCopy) {
-  #IS IT BAD THAT THIS IS CHANGABLE?
   numCreatures <- nrow(creaturesCopy)
   nearChancesCenterRow <- c()
   for(i in 1:numCreatures) {
-    #print(populationSizes)
     center <- populationSizes[1,i] * .9
     nearChancesCenterRow <- c(nearChancesCenterRow, center)
   }
@@ -499,7 +428,6 @@ computeNearChanceCenterRow <- function(creaturesCopy) {
 }
 
 computeNearChanceSlopeRow <- function(creaturesCopy) {
-  #IS IT BAD THAT THIS IS CHANGABLE? YES IT IS!
   numCreatures <- nrow(creaturesCopy)
   nearChancesSlopeRow <- c()
   for(i in 1:numCreatures) {
@@ -633,16 +561,6 @@ shinyServer(function(input, output, session) {
   observeEvent(input$joined, {
     addCreature(input$ID, input$class, input$race, input$name)})
   
-  #nut cracking means TREES!!!
-  #HERD MENTALITY? <- downside?
-  #MORE ENDURING LEGS?
-  #SHOW OFF POISONNESSNESS ALA BRIGHT SNAKES
-  #MIND/BRAIN EVOS?
-  #BURROWING?
-  #MOUTH
-  #BABYMAKING !
-  #Scavenger (eats those died to starve/attrition)?
-  
   output$evos <- renderMenu({
     sidebarMenu(
       menuItem("body",tabName = "body",
@@ -670,15 +588,5 @@ shinyServer(function(input, output, session) {
     )})
   
 })
-# 
-# addSession()
-# addSession()
-# addSession()
-# addCreature(sessions[1], 'la', 'le', 'lo')
-# addCreature(sessions[2], 'la', 'le', 'lo')
-# addCreature(sessions[3], 'la', 'le', 'lo')
-# addEvolution(sessions[1], '+1#speed')
-# addEvolution(sessions[2], '-1#speed')
-# addEvolution(sessions[3], '-1#size')
 
-folderName <- "grass, averageHerb-eeyes, smallCarn-eeyes"
+#folderName <- "folder to store graphs"
