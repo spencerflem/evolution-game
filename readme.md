@@ -8,5 +8,5 @@ Grow your population! Do you evolve faster speed to catch wiley prey, or intelli
 ## Context About the Code
 This is not an example of clean, readable code.
 It was written by and for myself with a tight deadline and no intention of modification after science fair.
-Were this a product developed on a team, there would be a significantly better git history, more comments, and no commenteded out code
+Were this a product developed on a team, there would be a significantly better git history, more comments, and no commented out code
 With that being said, there are parts I'm still proud of
