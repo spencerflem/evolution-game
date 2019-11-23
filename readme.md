@@ -2,7 +2,7 @@
 *A multplayer game about population dynamics made for senior-year science research*
 
 ## Pitch
-Grow your population! Do you evolve faster speed to catch wiley prey, or intelligence to outsmart predators. How does the herbivore population impact the predators? Population dynamics with pals.
+Champion a species to greatness! Do you evolve faster speed to catch wiley prey, or intelligence to outsmart predators? How does the herbivore population impact the predators? Population dynamics with pals.
 
 
 ## Context About the Code
